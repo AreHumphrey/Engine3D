@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Threading;
@@ -153,6 +154,10 @@ namespace Elementary_classes_engine
 
             }
         }
+        public static double Sum(double a, double b)
+        {
+            return a + b;
+        }
         public class Object
         {
             public point Position;
@@ -163,9 +168,77 @@ namespace Elementary_classes_engine
                 this.Rotation = Rotation;
             }
 
+            public static void Contains(point Pt)
+            {
+                //Лежит ли точка ДОБАВИТЬ (bool)
+            }
+            public static void Intersec(Vector V)
+            {
+                 //Пересечение луча ДОБАВИТЬ
+            }
+
+          
+        }
+        public class Plane : Object // Плоскость наследуется от объекта 
+        {
+            public Plane(point Position, Vector Rotation) : base(Position, Rotation){}
+            public static void contains(point Pt)
+            {
+                //Лежит ли точка ДОБАВИТЬ (bool)
+            }
+            public static void intersect(Vector V)
+            {
+                // Точка Пересечения камеры и объекта ДОБАВИТЬ
+            }
+            
+
+        }
+        public class Parameters
+        {
+            //методы преобразования коэффициентов путем поворота, перемещения и/или масштабирования
+            public double a;
+            public double b;
+            public double c;
+            public Parameters(double a, double b, double c)
+            {
+                this.a = a;
+                this.b = b;
+                this.c = c;
+            }
+        }
+        public class BoundedPlane : Plane //  Главная плоскость
+        {
+            Vector Delta_U;
+            Vector Delta_V;
+            public BoundedPlane(Vector Delta_U, Vector Delta_V, point Position, Vector Rotation) : base(Position, Rotation)
+            {
+                this.Delta_U = Delta_U;
+                this.Delta_V = Delta_V;
+            }
+            public static bool InBoundaries(point Pt)  // Проверка координат точки на соответствие границам плоскости
+            {
+                return true;
+            }
 
         }
 
+        public class Sphere : Object
+        {
+            public Sphere(point Position, Vector Rotation) : base(Position, Rotation){}
+            public static void contains(point Pt)
+            {
+                // ДОБАВИТЬ (bool)
+            }
+            public static void intersect(Vector V)
+            {
+                //  ДОБАВИТЬ
+            }
+            public static void ParametersSphere(Parameters P)
+            {
+                // Радиус
+            }
+        }
+        
 
 
     }
