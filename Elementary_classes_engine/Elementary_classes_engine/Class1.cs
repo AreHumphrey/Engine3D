@@ -172,7 +172,7 @@ namespace Elementary_classes_engine
             {
                 //Лежит ли точка ДОБАВИТЬ (bool)
             }
-            public static void Intersec(Vector V)
+            public static void Intersect(Vector V)
             {
                  //Пересечение луча ДОБАВИТЬ
             }
