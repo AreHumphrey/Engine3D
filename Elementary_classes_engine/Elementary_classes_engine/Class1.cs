@@ -134,7 +134,7 @@ namespace Elementary_classes_engine
                 return vect / VectorsLen;
             }
         }
-        public class Camera
+        public abstract class Camera
         {
             public double Width = 70;
             public double Height = 50;
@@ -153,12 +153,14 @@ namespace Elementary_classes_engine
                 this.DrawDistance = DrawDistance;
 
             }
+            public abstract double Func();// Пустить во все стороны от камеры лучи (необходим подсчет)
+
         }
         public static double Sum(double a, double b)
         {
             return a + b;
         }
-        public class Object
+        public abstract class Object
         {
             public point Position;
             public Vector Rotation; //пока оставить
@@ -168,10 +170,8 @@ namespace Elementary_classes_engine
                 this.Rotation = Rotation;
             }
 
-            public static void Contains(point Pt)
-            {
-                //Лежит ли точка ДОБАВИТЬ (bool)
-            }
+            public abstract bool Contains(point Pt); //Лежит ли точка ДОБАВИТЬ (bool)
+            
             public static void Intersect(Vector V)
             {
                  //Пересечение луча ДОБАВИТЬ
@@ -179,6 +179,7 @@ namespace Elementary_classes_engine
 
           
         }
+       
         public class Plane : Object // Плоскость наследуется от объекта 
         {
             public Plane(point Position, Vector Rotation) : base(Position, Rotation){}
@@ -190,20 +191,23 @@ namespace Elementary_classes_engine
             {
                 // Точка Пересечения камеры и объекта ДОБАВИТЬ
             }
-            
 
+            public override bool Contains(point Pt)
+            {
+                throw new NotImplementedException();
+            }
         }
         public class Parameters
         {
             //методы преобразования коэффициентов путем поворота, перемещения и/или масштабирования
-            public double a;
-            public double b;
-            public double c;
+            public double aCoefficient;
+            public double bCoefficient;
+            public double cCoefficient;
             public Parameters(double a, double b, double c)
             {
-                this.a = a;
-                this.b = b;
-                this.c = c;
+                this.aCoefficient = a;
+                this.bCoefficient = b;
+                this.cCoefficient = c;
             }
         }
         public class BoundedPlane : Plane //  Главная плоскость
@@ -222,13 +226,26 @@ namespace Elementary_classes_engine
 
         }
 
+
         public class Sphere : Object
         {
-            public Sphere(point Position, Vector Rotation) : base(Position, Rotation){}
-            public static void contains(point Pt)
+            public double Radius;
+            
+          
+
+            public Sphere(point Center, double Radius, point Position, Vector Rotation) : base(Position, Rotation)
             {
-                // ДОБАВИТЬ (bool)
+                Position = Center;
+                this.Radius = Radius;
+               
             }
+            
+            public override bool Contains(point Pt)
+            {
+                return Math.Pow(Pt.x - Position.x, 2) + Math.Pow(Pt.y - Position.y, 2) + Math.Pow(Pt.z - Position.z, 2) == Math.Pow(Radius, 2);
+                //Лежит ли точка 
+            }
+           
             public static void intersect(Vector V)
             {
                 //  ДОБАВИТЬ
@@ -238,9 +255,9 @@ namespace Elementary_classes_engine
                 // Радиус
             }
         }
-        
 
 
+         
     }
 
 
