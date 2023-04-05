@@ -1,5 +1,7 @@
+using NPOI.SS.Formula.Functions;
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Threading;
@@ -8,59 +10,58 @@ namespace Elementary_classes_engine
 {
     public class Program
     {
-        public class point
+        public class Point
         {
-
             public double x { get; private set; }
             public double y { get; private set; }
             public double z { get; private set; }
-            public point(double x, double y, double z)
+            public Point(double x, double y, double z)
             {
                 this.x = x;
                 this.y = y;
                 this.z = z;
             }
             //Перегрузка операторов ( + - * / ) + расстояние
-            public static double distance(point a, point b)
+            public static double distance(Point a, Point b)
             {
                 return Math.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
             }
-            public static point operator +(point a, point b)
+            public static Point operator +(Point a, Point b)
             {
-                return new point(a.x + b.x, a.y + b.y, a.z + b.z);
+                return new Point(a.x + b.x, a.y + b.y, a.z + b.z);
             }
-            public static point operator -(point a, point b)
+            public static Point operator -(Point a, Point b)
             {
-                return new point(a.x - b.x, a.y - b.y, a.z - b.z);
+                return new Point(a.x - b.x, a.y - b.y, a.z - b.z);
             }
-            public static point operator *(point a, point b)
+            public static Point operator *(Point a, Point b)
             {
-                return new point(a.x * b.x, a.y * b.y, a.z * b.z);
+                return new Point(a.x * b.x, a.y * b.y, a.z * b.z);
             }
-            public static point operator /(point a, point b)
+            public static Point operator /(Point a, Point b)
             {
-                return new point(a.x / b.x, a.y / b.y, a.z / b.z);
+                return new Point(a.x / b.x, a.y / b.y, a.z / b.z);
             }
            
 
-            public static point operator *(point a, double Element)
+            public static Point operator *(Point a, double Element)
             {
-                return new point(a.x * Element, a.y * Element, a.z * Element);
+                return new Point(a.x * Element, a.y * Element, a.z * Element);
             }
-            public static point operator *(double Element, point b)
+            public static Point operator *(double Element, Point b)
             {
-                return new point(b.x * Element, b.y * Element, b.z * Element);
+                return new Point(b.x * Element, b.y * Element, b.z * Element);
             }
-            public static point operator /(point a, double Element)
+            public static Point operator /(Point a, double Element)
             {
-                return new point(Element / a.x, Element / a.y, Element / a.z);
+                return new Point(Element / a.x, Element / a.y, Element / a.z);
             }
         }
         public class Vector
         {
-            public point pt;
+            public Point pt;
 
-            public Vector(point pt)
+            public Vector(Point pt)
             {
                 this.pt = pt;
 
@@ -76,51 +77,51 @@ namespace Elementary_classes_engine
             public static Vector operator +(Vector a, Vector b)
 
             {
-                return new Vector(new point(a.pt.x + b.pt.x, a.pt.y + b.pt.y, a.pt.z + b.pt.z));
+                return new Vector(new Point(a.pt.x + b.pt.x, a.pt.y + b.pt.y, a.pt.z + b.pt.z));
             }
             public static Vector operator -(Vector a, Vector b)
             {
-                return new Vector(new point(a.pt.x - b.pt.x, a.pt.y - b.pt.y, a.pt.z - b.pt.z));
+                return new Vector(new Point(a.pt.x - b.pt.x, a.pt.y - b.pt.y, a.pt.z - b.pt.z));
             }
             public static Vector operator *(Vector a, Vector b)
             {
-                return new Vector(new point(a.pt.x * b.pt.x, a.pt.y * b.pt.y, a.pt.z * b.pt.z));
+                return new Vector(new Point(a.pt.x * b.pt.x, a.pt.y * b.pt.y, a.pt.z * b.pt.z));
             }
             public static Vector operator ^(Vector a, Vector b)
             {
-                return new Vector(new point(a.pt.y * b.pt.z - a.pt.z * b.pt.z, a.pt.z * b.pt.x - a.pt.x * b.pt.z, a.pt.x * b.pt.y - a.pt.y * b.pt.x));
+                return new Vector(new Point(a.pt.y * b.pt.z - a.pt.z * b.pt.z, a.pt.z * b.pt.x - a.pt.x * b.pt.z, a.pt.x * b.pt.y - a.pt.y * b.pt.x));
             }
             public static Vector operator /(Vector a, Vector b)
             {
-                return new Vector(new point(a.pt.x / b.pt.x, a.pt.y / b.pt.y, a.pt.z / b.pt.z));
+                return new Vector(new Point(a.pt.x / b.pt.x, a.pt.y / b.pt.y, a.pt.z / b.pt.z));
             }
             public static Vector operator *(double Element, Vector b)
             {
-                return new Vector(new point(Element * b.pt.x, Element * b.pt.y, Element * b.pt.z));
+                return new Vector(new Point(Element * b.pt.x, Element * b.pt.y, Element * b.pt.z));
             }
             public static Vector operator *(Vector a, double Element)
             {
-                return new Vector(new point(Element * a.pt.x, Element * a.pt.y, Element * a.pt.z));
+                return new Vector(new Point(Element * a.pt.x, Element * a.pt.y, Element * a.pt.z));
             }
-            public static Vector operator /(Vector a, double Element)
+            public static Vector operator /(Vector a, double element)
             {
-                return new Vector(new point(a.pt.x / Element, a.pt.y / Element, a.pt.z / Element));
+                return new Vector(new Point(a.pt.x / element, a.pt.y / element, a.pt.z / element));
             }
             public static Vector operator /(double Element, Vector b)
             {
-                return new Vector(new point(Element / b.pt.x, Element / b.pt.y, Element / b.pt.z));
+                return new Vector(new Point(Element / b.pt.x, Element / b.pt.y, Element / b.pt.z));
             }
 
 
         }
         public class VectorSpace
         {
-            public point Initpt;
+            public Point Initpt;
             public Vector Dir1;
             public Vector Dir2;
             public Vector Dir3;
 
-            public VectorSpace(point InitPt, Vector Dir1, Vector Dir2, Vector Dir3)
+            public VectorSpace(Point InitPt, Vector Dir1, Vector Dir2, Vector Dir3)
             {
                 this.Initpt = InitPt;
                 this.Dir1 = VectorBasis(Dir1);
@@ -130,20 +131,20 @@ namespace Elementary_classes_engine
 
             public static Vector VectorBasis(Vector vect)
             {
-                double VectorsLen = Vector.LenVector(vect);
-                return vect / VectorsLen;
+                double vectorsLen = Vector.LenVector(vect);
+                return vect / vectorsLen;
             }
         }
-        public abstract class Camera
+        public class Camera
         {
             public double Width = 70;
             public double Height = 50;
             public double Fov; 
             public double VFov; 
-            public point Look_at;
+            public Point Look_at;
             public double Look_dir;
             public double DrawDistance;
-            public Camera(point Pos, point Look_at, double Look_dir, double Fov, double DrawDistance, double vFov)
+            public Camera(Point Pos, Point Look_at, double Look_dir, double Fov, double DrawDistance, double vFov)
             {
                 this.Look_at = Look_at;
                 this.Look_dir = Look_dir;
@@ -153,93 +154,65 @@ namespace Elementary_classes_engine
                 this.DrawDistance = DrawDistance;
 
             }
-            public abstract double Func();// Пустить во все стороны от камеры лучи (необходим подсчет)
-            public abstract double DistanceObject(Object obj);
+            public static void Func(Vector v)
+            {
+                // Пустить во все стороны от камеры лучи (необходим подсчет)
+            }
+            public void sendRays(Map map) { }
         }
         public static double Sum(double a, double b)
         {
             return a + b;
         }
-        public abstract class Object
+        public class Object
         {
-            public point Position;
+            public Point Position;
             public Vector Rotation; //пока оставить
-            public Object(point Position, Vector Rotation)
+            public void Contains(Point Pt)
             {
-                this.Position = Position;
-                this.Rotation = Rotation;
+                //Лежит ли точка ДОБАВИТЬ (bool)
             }
 
-            public abstract bool Contains(point Pt); //Лежит ли точка ДОБАВИТЬ (bool)
-
-            public abstract bool Intersect(Ray)
+            public  void Intersect(Ray ray)
             {
-                //Пересечение луча ДОБАВИТЬ
-                // Заглушка для определения точки пересечения прямой с объектом
+
             }
+
+            //Пересечение луча ДОБАВИТЬ
+            // Заглушка для определения точки пересечения прямой с объектом
+
             // Заглушка для определения ближайшей точки из набора
-            public virtual point getNearestPoint(point[] pts)
+            public  void getNearestPoint(Point[] pts)
             {
-                point nearestPoint = null;
-                double closestDistance = double.PositiveInfinity;
-                foreach (point p in pts)
-                {
-                    double distance = distanceTo(point);
-                    if (distance < closestDistance)
-                    {
-                        nearestPoint = p;
-                        closestDistance = distance;
-                    }
-                }
-                return nearestPoint;
-            }
-            protected double distanceTo(Point point)
-            {
-                double dx = point.x - position.x;
-                double dy = point.y - position.y;
-                double dz = point.z - position.z;
-                return Math.Sqrt(dx * dx + dy * dy + dz * dz);
-            }
 
+            }
+            
+            public void distanceTo(Point point)
+            {
+
+            }
+            
         }
        
         public class Plane : Object // Плоскость наследуется от объекта 
         {
             public ParametersPlane parameters;
 
-            public Plane(point position, Vector rotation)
+            public Plane(Point position, Vector rotation)
             {
-                this.position = position;
-                this.rotation = rotation;
-                Parameters = new ParametersPlane();
+                this.Position = position;
+                this.Rotation = rotation;
+                parameters = new ParametersPlane();
             }
 
-            public override point intersect(Vector V, point pt)
+            public  void Intersect(Vector V, Point pt)
             {
-                double denominator = parameters.CalculateValue(direction);
-                if (denominator == 0) // прямая параллельна плоскости или лежит в плоскости
-                {
-                    if (Contains(point)) // прямая лежит в плоскости
-                    {
-                        return point; // любая точка прямой будет являться точкой пересечения
-                    }
-                    else
-                    {
-                        return null; // прямая параллельна плоскости и не пересекает ее
-                    }
-                }
-                else // прямая пересекает плоскость
-                {
-                    double numerator = parameters.CalculateValue(position) - parameters.CalculateValue(point);
-                    double distance = numerator / denominator;
-                    return new Point(point.x + direction.x * distance, point.y + direction.y * distance, point.z + direction.z * distance);
-                }
                
             }
 
-            public override bool Contains(point Pt)
+            public double Contains(Point pt)
             {
-                return parameters.CalculateValue(point); //Лежит ли точка ДОБАВИТЬ (bool) + 
+                return parameters.CalculateValue(pt); //Лежит ли точка ДОБАВИТЬ (bool) + 
             }
             
         }
@@ -250,12 +223,6 @@ namespace Elementary_classes_engine
             public double bCoefficient;
             public double cCoefficient;
         
-            public Parameters(double a, double b, double c)
-            {
-                this.aCoefficient = a;
-                this.bCoefficient = b;
-                this.cCoefficient = c;
-            }
             public void Rotate(double angle)
             {
                 // Преобразовать коэффициенты уравнения при помощи поворота
@@ -284,7 +251,7 @@ namespace Elementary_classes_engine
                 c = 1;
                 d = 0;
             }
-            public double CalculateValue(point pt)
+            public double CalculateValue(Point pt)
             {
                 return a * pt.x + b * pt.y + c * pt.z + d;
             }
@@ -297,12 +264,12 @@ namespace Elementary_classes_engine
         {
             Vector Delta_U;
             Vector Delta_V;
-            public BoundedPlane(Vector Delta_U, Vector Delta_V, point Position, Vector Rotation) : base(Position, Rotation)
+            public BoundedPlane(Vector Delta_U, Vector Delta_V, Point Position, Vector Rotation) : base(Position, Rotation)
             {
                 this.Delta_U = Delta_U;
                 this.Delta_V = Delta_V;
             }
-            public abstract bool InBoundaries(point Pt)  // Проверка координат точки на соответствие границам плоскости
+            public void InBoundaries(Point Pt)  // Проверка координат точки на соответствие границам плоскости
             {
            
             }
@@ -317,26 +284,31 @@ namespace Elementary_classes_engine
             private Parameters parameters;
 
 
-            public Sphere(point Center, double Radius)
+            public Sphere(Point Center, double Radius)
             {
                 Position = Center;
                 this.Radius = Radius;
-                parameters = new Parameters;
+                parameters = new Parameters();
             }
             
-            public override bool Contains(point Pt)
+            public bool Contains(Point Pt)
             {
                 return Math.Pow(Pt.x - Position.x, 2) + Math.Pow(Pt.y - Position.y, 2) + Math.Pow(Pt.z - Position.z, 2) == Math.Pow(Radius, 2);
                 //Лежит ли точка на поверхности сферы 
             }
            
-            public intersect(Vector V)
+            public void intersect(Vector V)
             {
                 //  ДОБАВИТЬ
             }
-            public static void ParametersSphere(Parameters P)
+            
+
+
+        }
+        public class ParametersSphere : Sphere
+        {
+            public ParametersSphere(Point Center, double Radius) : base(Center, Radius)
             {
-                // Радиус
             }
         }
         public class Map
@@ -344,7 +316,6 @@ namespace Elementary_classes_engine
             private List<T> arrObjects;
             public Map()
             {
-
                 arrObjects = new List<T>();
             }
             public void Append(T obj)
@@ -359,21 +330,54 @@ namespace Elementary_classes_engine
         }
         public class Ray
         {
-            point position;
+            Point position;
             Vector direction;
-            public Ray(point position, Vector direction) 
+            public Ray(Point position, Vector direction) 
             {
                 this.position = position;
                 this.direction = direction;
             }
-            public override point Intersect(Map); //метод поиска ближайшей точки пересечения с объектами на карте
-            
+            public void NearestObject(Map map) 
+            {
+                //метод поиска ближайшей точки пересечения с объектами на карте
+            }
+
 
         }
-        public abstract class Canavas
+        public class Canavas
         {
+            public Map map;
+            public Camera camera;
+            public VectorSpace vspace;
+            public void Draw(Map map, Camera camera)
+            {
+                //метод отрисовки проекции карты map на камеру camera относительно текущего формата отрисовки.
+            }
 
         }
+
+        public abstract class Console : Canavas
+        {
+            private ConsoleColor[] gradient = new ConsoleColor[]
+            {
+                ConsoleColor.Red, ConsoleColor.Green, ConsoleColor.Blue, ConsoleColor.Yellow, ConsoleColor.DarkYellow, ConsoleColor.DarkCyan
+
+            };
+           
+            public void Draw(Map map, Camera camera)
+            {
+                //Требуется перегрузить метод draw для отрисовки конкретно в консоль;
+
+            }
+            double[] graphics = {};
+            public void DrawDistant(double[] graphics)
+            {
+                //в зависимости от дальности объекта на экране.
+            }
+
+            char[] dropline = { ' ', '#', '%', ':', ';', ',', '.' };
+        }
+
 
 
 
