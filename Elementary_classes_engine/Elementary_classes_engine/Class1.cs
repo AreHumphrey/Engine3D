@@ -344,7 +344,7 @@ namespace Elementary_classes_engine
 
 
         }
-        public class Canavas
+        public class Canvas
         {
             public Map map;
             public Camera camera;
@@ -356,7 +356,7 @@ namespace Elementary_classes_engine
 
         }
 
-        public abstract class Console : Canavas
+        public abstract class Console : Canvas
         {
             private ConsoleColor[] gradient = new ConsoleColor[]
             {
