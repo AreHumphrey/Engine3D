@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Threading;
+using AnsiTerminal;
 
 namespace Elementary_classes_engine
 {
@@ -166,29 +167,6 @@ namespace Elementary_classes_engine
                 return Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
 
-            public Object NearestObject(Object[] objects)
-            {
-                Object nearestObject = null;
-                double closestDistance = double.PositiveInfinity;
-
-                foreach (Object obj in objects)
-                {
-                    Ray ray = new Ray(position, lookDir);
-                    Point intersection = obj.Intersect(ray);
-                    if (intersection != null)
-                    {
-                        double distance = DistanceTo(intersection);
-
-                        if (distance < closestDistance && distance < drawDistance)
-                        {
-                            nearestObject = obj;
-                            closestDistance = distance;
-                        }
-                    }
-                }
-
-                return nearestObject;
-            }
             public List<Object> nearestObject(Object[] objects)
             {
                 List<Object> nearestObjects = new List<Object>();
@@ -220,29 +198,8 @@ namespace Elementary_classes_engine
                 return rot;
             }
 
-            public List<Ray> SendRays(Map map)
-            {
-                List<Ray> rays = new List<Ray>();
-
-                double rayAngle = fov / width; 
-                double vRayAngle = vFov / height; 
-
-                for (int i = 0; i < width; i++)
-                {
-                    Vector dir = AngleToDirectionVector(lookDir, (i - width / 2) * rayAngle);
-                    Ray ray = new Ray(position, dir);
-                    rays.Add(ray); 
-
-                    for (int j = 0; j < height; j++)
-                    {
-                        Vector vDir = AngleToDirectionVector(dir, (j - height / 2) * vRayAngle);
-                        Ray vRay = new Ray(position, vDir);
-                        rays.Add(vRay); 
-                    }
-                }
-
-                return rays;
-            }
+           
+            
             public List<Ray> sendRays(Map map)
             {
                 List<Ray> rays = new List<Ray>();
@@ -577,8 +534,6 @@ namespace Elementary_classes_engine
             };
             public Consoles(Map map, Camera camera, VectorSpace vSpace) : base(map, camera, vSpace) { }
 
-            //private string dropline = "░░▒▒▓▓██ ";
-
             private string dropline = "@#*+=-^:. ";
             public void draw()
             {
@@ -592,7 +547,7 @@ namespace Elementary_classes_engine
                         Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
 
                         
-                        List<Ray> rays = camera.SendRays(map);
+                        List<Ray> rays = camera.sendRays(map);
                         List<Object> nearestObjects = camera.nearestObject(map.arrObj);
 
                         for (int h = 0; h < nearestObjects.Count; h++)
@@ -626,27 +581,75 @@ namespace Elementary_classes_engine
                     }
                 }
             }
+            //public void Draw()
+            //{
+            //    int screenWidth = Console.WindowWidth;
+            //    int screenHeight = Console.WindowHeight;
+            //    for (int y = 0; y < screenHeight; y++)
+            //    {
+            //        for (int x = 0; x < screenWidth; x++)
+            //        {
 
+            //            Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
+
+            //            List<Object> nearestObjects = camera.nearestObject(map.arrObj);
+            //            for (int h = 0; h < nearestObjects.Count; h++)
+            //            {
+            //                Object obj = nearestObjects[h];
+            //                if (obj != null)
+            //                {
+
+            //                    Ray ray = new Ray(camera.position, dir);
+            //                    Point intersection = obj.Intersect(ray);
+
+            //                    if (intersection != null)
+            //                    {
+            //                        double distance = camera.DistanceTo(intersection);
+
+            //                        int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
+            //                        gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
+
+            //                        Console.Write(dropline[gradientIndex]);
+
+            //                    }
+            //                    else
+            //                    {
+            //                        Console.Write(" ");
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    Console.Write(" ");
+            //                }
+
+            //            }
+
+
+            //        }
+
+            //        Console.WriteLine();
+            //    }
+
+
+
+            //}
 
             public void Draw()
             {
                 int screenWidth = Console.WindowWidth;
                 int screenHeight = Console.WindowHeight;
-
                 for (int y = 0; y < screenHeight; y++)
                 {
                     for (int x = 0; x < screenWidth; x++)
                     {
-
                         Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
-                        List<Ray> rays = camera.sendRays(map);
-                        List<Object> nearestObjects = camera.nearestObject(map.arrObj); 
-                        for(int h = 0; h < nearestObjects.Count; h++)
+
+                        List<Object> nearestObjects = camera.nearestObject(map.arrObj);
+                        for (int h = 0; h < nearestObjects.Count; h++)
                         {
                             Object obj = nearestObjects[h];
                             if (obj != null)
                             {
-
                                 Ray ray = new Ray(camera.position, dir);
                                 Point intersection = obj.Intersect(ray);
 
@@ -657,28 +660,68 @@ namespace Elementary_classes_engine
                                     int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
                                     gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
 
-                                    Console.Write(dropline[gradientIndex]);
-                                    
-                                }
-                                else
-                                {
-                                    Console.Write(" ");
+                                    // Set cursor position and write char with variable opacity
+                                    Console.SetCursorPosition(x, y);
+                                    Console.Write(new AnsiString(dropline[gradientIndex], 255 - (int)(distance * 255 / camera.drawDistance)));
+
                                 }
                             }
-                            //else
-                            //{
-                            //    Console.Write(" ");
-                            //}
-
                         }
-
-                        
                     }
-
-                    Console.WriteLine();
                 }
             }
+            //public void Draw()
+            //{
+            //    int screenWidth = Console.WindowWidth;
+            //    int screenHeight = Console.WindowHeight;
 
+            //    for (int y = 0; y < screenHeight; y++)
+            //    {
+            //        for (int x = 0; x < screenWidth; x++)
+            //        {
+
+            //            Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
+            //            List<Ray> rays = camera.sendRays(map);
+            //            List<Object> nearestObjects = camera.nearestObject(map.arrObj); 
+            //            for(int h = 0; h < nearestObjects.Count; h++)
+            //            {
+            //                Object obj = nearestObjects[h];
+            //                if (obj != null)
+            //                {
+
+            //                    Ray ray = new Ray(camera.position, dir);
+            //                    Point intersection = obj.Intersect(ray);
+
+            //                    if (intersection != null)
+            //                    {
+            //                        double distance = camera.DistanceTo(intersection);
+
+            //                        int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
+            //                        gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
+
+            //                        Console.Write(dropline[gradientIndex]);
+
+            //                    }
+            //                    else 
+            //                    {
+
+            //                        Console.Write(' ');
+            //                    }
+            //                }
+            //                else
+            //                {
+
+            //                    Console.Write(' ');
+            //                }
+
+            //            }
+
+
+            //        }
+
+            //        Console.WriteLine();
+            //    }
+            //}
 
         }
         public class Angle : Point
