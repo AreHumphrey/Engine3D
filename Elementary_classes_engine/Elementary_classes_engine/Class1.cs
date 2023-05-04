@@ -43,13 +43,13 @@ namespace Elementary_classes_engine
             }
            
 
-            public static Point operator *(Point a, double Element)
+            public static Point operator *(Point a, double element)
             {
-                return new Point(a.x * Element, a.y * Element, a.z * Element);
+                return new Point(a.x * element, a.y * element, a.z * element);
             }
-            public static Point operator *(double Element, Point b)
+            public static Point operator *(double element, Point b)
             {
-                return new Point(b.x * Element, b.y * Element, b.z * Element);
+                return new Point(b.x * element, b.y * element, b.z * element);
             }
         }
         public class Vector
@@ -99,13 +99,13 @@ namespace Elementary_classes_engine
             {
                 return new Vector(new Point(a.x / b.x, a.y / b.y, a.z / b.z));
             }
-            public static Vector operator *(double Element, Vector b)
+            public static Vector operator *(double element, Vector b)
             {
-                return new Vector(new Point(Element * b.x, Element * b.y, Element * b.z));
+                return new Vector(new Point(element * b.x, element * b.y, element * b.z));
             }
-            public static Vector operator *(Vector a, double Element)
+            public static Vector operator *(Vector a, double element)
             {
-                return new Vector(new Point(Element * a.x, Element * a.y, Element * a.z));
+                return new Vector(new Point(element * a.x, element * a.y, element * a.z));
             }
             public static Vector operator /(Vector a, double element)
             {
@@ -117,16 +117,16 @@ namespace Elementary_classes_engine
         public class VectorSpace
         {
             public Point Initpt;
-            public Vector Dir1;
-            public Vector Dir2;
-            public Vector Dir3;
+            public Vector dir1;
+            public Vector dir2;
+            public Vector dir3;
 
-            public VectorSpace(Point InitPt, Vector Dir1, Vector Dir2, Vector Dir3)
+            public VectorSpace(Point InitPt, Vector dir1, Vector dir2, Vector dir3)
             {
                 this.Initpt = InitPt;
-                this.Dir1 = VectorBasis(Dir1);
-                this.Dir2 = VectorBasis(Dir2);
-                this.Dir3 = VectorBasis(Dir3);
+                this.dir1 = VectorBasis(dir1);
+                this.dir2 = VectorBasis(dir2);
+                this.dir3 = VectorBasis(dir3);
             }
 
             public static Vector VectorBasis(Vector vect)
@@ -137,24 +137,24 @@ namespace Elementary_classes_engine
         }
         public class Camera
         {
-            public double Width = 70;
-            public double Height = 50;
-            public double Fov;
-            public double VFov; //Вертикальный угол отрисовки
-            public Point Look_at;
-            public Vector Look_dir;
+            public double width = 70;
+            public double height = 50;
+            public double fov;
+            public double vFov; //Вертикальный угол отрисовки
+            public Point lookAt;
+            public Vector lookDir;
             public Point position;
             public Vector rotation;
-            public double DrawDistance;
-            public Camera(Point position, Vector rotation, Point Look_at, Vector Look_dir, double Fov, double DrawDistance)
+            public double drawDistance;
+            public Camera(Point position, Vector rotation, Point lookAt, Vector lookDir, double fov, double drawDistance)
             {
                 this.rotation = rotation;
-                this.Look_at = Look_at;
-                this.Look_dir = Look_dir;
-                this.Fov = Fov;
+                this.lookAt = lookAt;
+                this.lookDir = lookDir;
+                this.fov = fov;
                 this.position = position;
                
-                this.DrawDistance = DrawDistance;
+                this.drawDistance = drawDistance;
 
             }
 
@@ -173,13 +173,13 @@ namespace Elementary_classes_engine
 
                 foreach (Object obj in objects)
                 {
-                    Ray ray = new Ray(position, Look_dir);
+                    Ray ray = new Ray(position, lookDir);
                     Point intersection = obj.Intersect(ray);
                     if (intersection != null)
                     {
                         double distance = DistanceTo(intersection);
 
-                        if (distance < closestDistance && distance < DrawDistance)
+                        if (distance < closestDistance && distance < drawDistance)
                         {
                             nearestObject = obj;
                             closestDistance = distance;
@@ -188,6 +188,28 @@ namespace Elementary_classes_engine
                 }
 
                 return nearestObject;
+            }
+            public List<Object> nearestObject(Object[] objects)
+            {
+                List<Object> nearestObjects = new List<Object>();
+                double closestDistance = double.PositiveInfinity;
+                foreach (Object obj in objects)
+                {
+                    Ray ray = new Ray(position, lookDir);
+                    Point intersection = obj.Intersect(ray);
+                    if (intersection != null)
+                    {
+                        double distance = DistanceTo(intersection);
+
+                        if (distance < closestDistance && distance < drawDistance)
+                        {
+                            nearestObjects.Add(obj);
+                            closestDistance = distance;
+                        }
+                    }
+                }
+
+                return nearestObjects;
             }
 
             public Vector AngleToDirectionVector(Vector baseDirection, double angle)
@@ -198,55 +220,63 @@ namespace Elementary_classes_engine
                 return rot;
             }
 
-            public void SendRays(Map map, int numRays, int numVerticalRays)
+            public List<Ray> SendRays(Map map)
             {
-                double angleStep = Fov / (numRays - 1); 
-                double angleStepVertical = Fov / (numVerticalRays - 1); 
-                double verticalAngleStart = -Fov / 2 + angleStepVertical / 2;
-                double maxAngleDeviation = Math.Tan(Fov / 2) / Math.Max(numRays, numVerticalRays); ;
+                List<Ray> rays = new List<Ray>();
 
-                for (int j = 0; j < numVerticalRays; j++)
+                double rayAngle = fov / width; 
+                double vRayAngle = vFov / height; 
+
+                for (int i = 0; i < width; i++)
                 {
-                    double verticalRayAngle = verticalAngleStart + j * angleStepVertical;
+                    Vector dir = AngleToDirectionVector(lookDir, (i - width / 2) * rayAngle);
+                    Ray ray = new Ray(position, dir);
+                    rays.Add(ray); 
 
-                    for (int i = 0; i < numRays; i++)
+                    for (int j = 0; j < height; j++)
                     {
-                        double rayAngle = -Fov / 2 + i * angleStep;
-                        Vector rayDirection = AngleToDirectionVector(Look_dir, rayAngle);
-                        Ray ray = new Ray(position, rayDirection);
-
-                        Point intersection = null;
-
-                        foreach (Object obj in map.arrObj)
-                        {
-                            intersection = obj.Intersect(ray);
-                            if (intersection != null)
-                            {
-                                break;
-                            }
-                        }
-
-                        Vector verticalRayDirection = AngleToDirectionVector(Look_dir, verticalRayAngle);
-                        Ray verticalRay = new Ray(position, verticalRayDirection);
-
-                        Point intersectionVertical = null;
-
-                        foreach (Object obj in map.arrObj)
-                        {
-                            intersectionVertical = obj.Intersect(verticalRay);
-                            if (intersectionVertical != null)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (intersectionVertical != null && intersection != null)
-                        {
-                            // обработка пересечения
-                        }
+                        Vector vDir = AngleToDirectionVector(dir, (j - height / 2) * vRayAngle);
+                        Ray vRay = new Ray(position, vDir);
+                        rays.Add(vRay); 
                     }
                 }
+
+                return rays;
             }
+            public List<Ray> sendRays(Map map)
+            {
+                List<Ray> rays = new List<Ray>();
+
+                double rayAngle = fov / width; 
+                double vRayAngle = vFov / height; 
+
+                for (int i = 0; i < width; i++)
+                {
+                    Vector dir = AngleToDirectionVector(lookDir, (i - width / 2) * rayAngle);
+                    Ray ray = new Ray(position, dir);
+                    rays.Add(ray); 
+
+                    for (int j = 0; j < height; j++)
+                    {
+                        Vector vDir = AngleToDirectionVector(dir, (j - height / 2) * vRayAngle);
+                        Ray vRay = new Ray(position, vDir);
+                        rays.Add(vRay); 
+                    }
+                }
+
+                foreach (Ray ray in rays)
+                {
+                    Point intersection = ray.Intersect(map);
+                    if (intersection != null)
+                    {
+                        // do something with the intersection point
+                    }
+                }
+
+                return rays;
+            }
+
+
         }
        
         public abstract class Object
@@ -519,22 +549,23 @@ namespace Elementary_classes_engine
 
 
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\
         public class Canvas
         {
             public Map map;
             public Camera camera;
             public VectorSpace vSpace;
-            public Canvas(Map map, Camera camera, VectorSpace vSpace)
+            public Canvas(Map map, Camera camera, VectorSpace vectorSpace)
             {
                 this.map = map;
                 this.camera = camera;
-                this.vSpace = vSpace;
+                this.vSpace = vectorSpace;
             }
-            public void Draww(Map map, Camera camera)
+            public void draw()
             {
-                //метод отрисовки проекции карты map на камеру camera относительно текущего формата отрисовки.
-            }
-           
+
+            }  
         }
 
         public class Consoles : Canvas
@@ -547,8 +578,54 @@ namespace Elementary_classes_engine
             public Consoles(Map map, Camera camera, VectorSpace vSpace) : base(map, camera, vSpace) { }
 
             //private string dropline = "░░▒▒▓▓██ ";
-            private string dropline = "@#%&*+=-:. ";
 
+            private string dropline = "@#*+=-^:. ";
+            public void draw()
+            {
+                int screenWidth = Console.WindowWidth;
+                int screenHeight = Console.WindowHeight;
+
+                for (int y = 0; y < screenHeight; y++)
+                {
+                    for (int x = 0; x < screenWidth; x++)
+                    {
+                        Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
+
+                        
+                        List<Ray> rays = camera.SendRays(map);
+                        List<Object> nearestObjects = camera.nearestObject(map.arrObj);
+
+                        for (int h = 0; h < nearestObjects.Count; h++)
+                        {
+                            Object obj = nearestObjects[h];
+                            if (obj != null)
+                            {
+                                Ray ray = new Ray(camera.position, dir);
+                                Point intersection = obj.Intersect(ray);
+
+                                if (intersection != null)
+                                {
+                                    double distance = camera.DistanceTo(intersection);
+
+                                    int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
+                                    gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
+
+                                    Console.Write(dropline[gradientIndex]);
+                                }
+                                else
+                                {
+                                    Console.Write(" ");
+                                }
+                            }
+                            else
+                            {
+                                Console.Write(" ");
+                            }
+                        }
+                        Console.WriteLine();
+                    }
+                }
+            }
 
 
             public void Draw()
@@ -560,35 +637,42 @@ namespace Elementary_classes_engine
                 {
                     for (int x = 0; x < screenWidth; x++)
                     {
+
+                        Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
+                        List<Ray> rays = camera.sendRays(map);
+                        List<Object> nearestObjects = camera.nearestObject(map.arrObj); 
+                        for(int h = 0; h < nearestObjects.Count; h++)
+                        {
+                            Object obj = nearestObjects[h];
+                            if (obj != null)
+                            {
+
+                                Ray ray = new Ray(camera.position, dir);
+                                Point intersection = obj.Intersect(ray);
+
+                                if (intersection != null)
+                                {
+                                    double distance = camera.DistanceTo(intersection);
+
+                                    int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
+                                    gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
+
+                                    Console.Write(dropline[gradientIndex]);
+                                    
+                                }
+                                else
+                                {
+                                    Console.Write(" ");
+                                }
+                            }
+                            //else
+                            //{
+                            //    Console.Write(" ");
+                            //}
+
+                        }
+
                         
-                        Vector dir = vSpace.Dir1 * ((double)x / screenWidth - 0.5) + vSpace.Dir2 * ((double)y / screenHeight - 0.5) + vSpace.Dir3;
-
-                        Object obj = camera.NearestObject(map.arrObj);
-
-                        if (obj != null)
-                        {
-
-                            Ray ray = new Ray(camera.position, dir);
-                            Point intersection = obj.Intersect(ray);
-
-                            if (intersection != null)
-                            {
-                                double distance = camera.DistanceTo(intersection);
-
-                                int gradientIndex = (int)(distance / camera.DrawDistance * dropline.Length);
-                                gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-
-                                Console.Write(dropline[gradientIndex]);
-                            }
-                            else 
-                            {
-                                Console.Write(" ");
-                            }
-                        }
-                        else 
-                        {
-                            Console.Write(" ");
-                        }
                     }
 
                     Console.WriteLine();
@@ -633,7 +717,7 @@ namespace Elementary_classes_engine
                 return new Angle(0, 0, 0, newYz, newXz, newXy);
             }
 
-            public static Point operator *(Point a, Angle angle)
+            public static Vector operator *(Point a, Angle angle)
             {
                 double yzRad = angle.yz * Math.PI / 180;
                 double xzRad = angle.xz * Math.PI / 180;
@@ -656,43 +740,43 @@ namespace Elementary_classes_engine
                 double newY = matrix[1, 0] * a.x + matrix[1, 1] * a.y + matrix[1, 2] * a.z;
                 double newZ = matrix[2, 0] * a.x + matrix[2, 1] * a.y + matrix[2, 2] * a.z;
 
-                return new Point(newX, newY, newZ);
+                Point t = new Point(newX, newY, newZ);
+                return new Vector(t);
 
             }
 
 
         }
 
-        public class Spectator : Camera
+        public class Spectator 
         {
-            public Spectator(Point position, Vector rotation, Point Look_at, Vector Look_dir, double Fov, double DrawDistance) : base(position, rotation, Look_at, Look_dir, Fov, DrawDistance) {}
+            //public Spectator(Point position, Vector rotation, Point Look_at, Vector Look_dir, double Fov, double DrawDistance) { }
 
-            public void MoveForward(double speed)
-            {
-                position += Look_at * speed;
-            }
+            //public void MoveForward(double speed)
+            //{
+            //    position += Look_at * speed;
+            //}
 
-            public void MoveBackward(double speed) 
-            { 
-                position -= Look_at * speed;
-            }
+            //public void MoveBackward(double speed) 
+            //{ 
+            //    position -= Look_at * speed;
+            //}
 
 
-            public void Rotate(Vector direction)
-            {
-                rotation += direction * 2;
-            }
+            //public void Rotate(Vector direction)
+            //{
+            //    rotation += direction * 2;
+            //}
 
         }
 
-        public class Player : Camera
+        public class Player 
         {
             public Vector speed; //Скорость перемещения
 
-            public Player(Point position, Vector rotation, Point Look_at, Vector Look_dir, double Fov, double DrawDistance) : base(position, rotation, Look_at, Look_dir, Fov, DrawDistance) 
+            public Player(Point position, Vector rotation, Point lookAt, Vector lookDir, double fov, double drawDistance) 
             { 
-                this.position = position;
-                this.rotation = rotation;
+               
             }
 
             public void Step(Vector direction) //Перемещение в указанном направлении
