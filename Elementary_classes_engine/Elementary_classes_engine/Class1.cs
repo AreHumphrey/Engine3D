@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Threading;
-using AnsiTerminal;
+
 
 namespace Elementary_classes_engine
 {
@@ -226,7 +226,7 @@ namespace Elementary_classes_engine
                     Point intersection = ray.Intersect(map);
                     if (intersection != null)
                     {
-                        // do something with the intersection point
+                        
                     }
                 }
 
@@ -507,7 +507,6 @@ namespace Elementary_classes_engine
 
         }
         
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\
         public class Canvas
         {
             public Map map;
@@ -535,24 +534,21 @@ namespace Elementary_classes_engine
             public Consoles(Map map, Camera camera, VectorSpace vSpace) : base(map, camera, vSpace) { }
 
             private string dropline = "@#*+=-^:. ";
-            public void draw()
+  
+            public void Draw()
             {
                 int screenWidth = Console.WindowWidth;
                 int screenHeight = Console.WindowHeight;
-
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    for (int x = 0; x < screenWidth; x++)
+                    for (int x = 0; x < screenWidth ; x++)
                     {
+
                         Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
 
-                        
-                        List<Ray> rays = camera.sendRays(map);
                         List<Object> nearestObjects = camera.nearestObject(map.arrObj);
-
-                        for (int h = 0; h < nearestObjects.Count; h++)
+                        foreach (var obj in nearestObjects)
                         {
-                            Object obj = nearestObjects[h];
                             if (obj != null)
                             {
                                 Ray ray = new Ray(camera.position, dir);
@@ -561,11 +557,13 @@ namespace Elementary_classes_engine
                                 if (intersection != null)
                                 {
                                     double distance = camera.DistanceTo(intersection);
-
-                                    int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
+                                    double gradientIndex = (distance / 100.0) * dropline.Length;
+                                    for (int i = 1; i < obj.DistanceTo(camera.position); i++)
+                                    {
+                                        gradientIndex += 0.003; // изменение на 0.5% за каждый пиксель
+                                    }
                                     gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-
-                                    Console.Write(dropline[gradientIndex]);
+                                    Console.Write(dropline[(int)Math.Round(gradientIndex)]);
                                 }
                                 else
                                 {
@@ -577,154 +575,19 @@ namespace Elementary_classes_engine
                                 Console.Write(" ");
                             }
                         }
-                        Console.WriteLine();
+
+
                     }
+
+                    Console.WriteLine();
                 }
+
+
+
             }
-            //public void Draw()
-            //{
-            //    int screenWidth = Console.WindowWidth;
-            //    int screenHeight = Console.WindowHeight;
-            //    for (int y = 0; y < screenHeight; y++)
-            //    {
-            //        for (int x = 0; x < screenWidth; x++)
-            //        {
-
-            //            Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
-
-            //            List<Object> nearestObjects = camera.nearestObject(map.arrObj);
-            //            for (int h = 0; h < nearestObjects.Count; h++)
-            //            {
-            //                Object obj = nearestObjects[h];
-            //                if (obj != null)
-            //                {
-
-            //                    Ray ray = new Ray(camera.position, dir);
-            //                    Point intersection = obj.Intersect(ray);
-
-            //                    if (intersection != null)
-            //                    {
-            //                        double distance = camera.DistanceTo(intersection);
-
-            //                        int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
-            //                        gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-
-            //                        Console.Write(dropline[gradientIndex]);
-
-            //                    }
-            //                    else
-            //                    {
-            //                        Console.Write(" ");
-            //                    }
-            //                }
-            //                else
-            //                {
-            //                    Console.Write(" ");
-            //                }
-
-            //            }
-
-
-            //        }
-
-            //        Console.WriteLine();
-            //    }
-
-
-
-            //}
-
-            public void Draw()
-            {
-                int screenWidth = Console.WindowWidth;
-                int screenHeight = Console.WindowHeight;
-                for (int y = 0; y < screenHeight; y++)
-                {
-                    for (int x = 0; x < screenWidth; x++)
-                    {
-                        Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
-
-                        List<Object> nearestObjects = camera.nearestObject(map.arrObj);
-                        for (int h = 0; h < nearestObjects.Count; h++)
-                        {
-                            Object obj = nearestObjects[h];
-                            if (obj != null)
-                            {
-                                Ray ray = new Ray(camera.position, dir);
-                                Point intersection = obj.Intersect(ray);
-
-                                if (intersection != null)
-                                {
-                                    double distance = camera.DistanceTo(intersection);
-
-                                    int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
-                                    gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-
-                                    // Set cursor position and write char with variable opacity
-                                    Console.SetCursorPosition(x, y);
-                                    Console.Write(new AnsiString(dropline[gradientIndex], 255 - (int)(distance * 255 / camera.drawDistance)));
-
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            //public void Draw()
-            //{
-            //    int screenWidth = Console.WindowWidth;
-            //    int screenHeight = Console.WindowHeight;
-
-            //    for (int y = 0; y < screenHeight; y++)
-            //    {
-            //        for (int x = 0; x < screenWidth; x++)
-            //        {
-
-            //            Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
-            //            List<Ray> rays = camera.sendRays(map);
-            //            List<Object> nearestObjects = camera.nearestObject(map.arrObj); 
-            //            for(int h = 0; h < nearestObjects.Count; h++)
-            //            {
-            //                Object obj = nearestObjects[h];
-            //                if (obj != null)
-            //                {
-
-            //                    Ray ray = new Ray(camera.position, dir);
-            //                    Point intersection = obj.Intersect(ray);
-
-            //                    if (intersection != null)
-            //                    {
-            //                        double distance = camera.DistanceTo(intersection);
-
-            //                        int gradientIndex = (int)(distance / camera.drawDistance * dropline.Length);
-            //                        gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-
-            //                        Console.Write(dropline[gradientIndex]);
-
-            //                    }
-            //                    else 
-            //                    {
-
-            //                        Console.Write(' ');
-            //                    }
-            //                }
-            //                else
-            //                {
-
-            //                    Console.Write(' ');
-            //                }
-
-            //            }
-
-
-            //        }
-
-            //        Console.WriteLine();
-            //    }
-            //}
 
         }
-        public class Angle : Point
+        public class Angle : Point //Угол поворота 
         {
             public double yz { get; set; } 
             public double xz { get; set; }
@@ -793,23 +656,32 @@ namespace Elementary_classes_engine
 
         public class Spectator 
         {
-            //public Spectator(Point position, Vector rotation, Point Look_at, Vector Look_dir, double Fov, double DrawDistance) { }
+            Camera camera;
+            public Point position;
+            public Vector lookAt;
 
-            //public void MoveForward(double speed)
-            //{
-            //    position += Look_at * speed;
-            //}
+            public Spectator(Camera camera, Point position, Vector lookAt) 
+            {
+                this.camera = camera;
+                this.position = position;
+                this.lookAt = lookAt;
+            }
 
-            //public void MoveBackward(double speed) 
-            //{ 
-            //    position -= Look_at * speed;
-            //}
+            public void MoveForward(double speed)
+            {
+                
+            }
+
+            public void MoveBackward(double speed)
+            {
+               
+            }
 
 
-            //public void Rotate(Vector direction)
-            //{
-            //    rotation += direction * 2;
-            //}
+            public void Rotate(Vector direction)
+            {
+                
+            }
 
         }
 
