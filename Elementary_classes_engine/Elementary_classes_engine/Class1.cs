@@ -21,6 +21,13 @@ namespace Elementary_classes_engine
                 this.y = y;
                 this.z = z;
             }
+            public Point Subtract(Vector other) {
+return new Point(
+this.x - other.x,
+this.y - other.y,
+this.z - other.z
+);
+}
             //Перегрузка операторов ( + - * / ) + расстояние
             public static double distance(Point a, Point b)
             {
@@ -80,7 +87,6 @@ namespace Elementary_classes_engine
 
             //Перегрузка операторов ( + - * / ) + расстояние
             public static Vector operator +(Vector a, Vector b)
-
             {
                 return new Vector(new Point(a.x + b.x, a.y + b.y, a.z + b.z));
             }
@@ -537,8 +543,9 @@ namespace Elementary_classes_engine
   
             public void Draw()
             {
-                int screenWidth = Console.WindowWidth;
-                int screenHeight = Console.WindowHeight;
+                int screenWidth = 100;
+                int screenHeight = 50;
+
                 for (int y = 0; y < screenHeight; y++)
                 {
                     for (int x = 0; x < screenWidth ; x++)
@@ -560,7 +567,7 @@ namespace Elementary_classes_engine
                                     double gradientIndex = (distance / 100.0) * dropline.Length;
                                     for (int i = 1; i < obj.DistanceTo(camera.position); i++)
                                     {
-                                        gradientIndex += 0.003; // изменение на 0.5% за каждый пиксель
+                                        gradientIndex += 0.05; // изменение на 0.5% за каждый пиксель
                                     }
                                     gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
                                     Console.Write(dropline[(int)Math.Round(gradientIndex)]);
@@ -654,51 +661,143 @@ namespace Elementary_classes_engine
 
         }
 
-        public class Spectator 
+        
+
+        public class Player
         {
-            Camera camera;
+            public Camera camera;
             public Point position;
             public Vector lookAt;
+            public double collisionRadius;
+            public Map map;
 
-            public Spectator(Camera camera, Point position, Vector lookAt) 
+            public Player(Point position, double fov, double drawDistance, double collisionRadius, Map map)
             {
-                this.camera = camera;
+                this.camera = new Camera(position, new Vector(0, 0, 0), null, null, fov, drawDistance);
                 this.position = position;
-                this.lookAt = lookAt;
+                this.lookAt = new Vector(0, 0, 1); // default look direction is towards +Z axis
+                this.collisionRadius = collisionRadius;
+                this.map = map;
             }
 
-            public void MoveForward(double speed)
+            public void MoveForward(double distance)
             {
-                
+                double dx = distance * lookAt.x;
+                double dz = distance * lookAt.z;
+                Point newPosition = new Point(position.x + dx, position.y, position.z + dz);
+                if (!CheckCollision(newPosition))
+                {
+                    position = newPosition;
+                    camera.position = newPosition;
+                }
             }
 
-            public void MoveBackward(double speed)
+            public void MoveBack(double distance)
             {
-               
+                double dx = distance * lookAt.x;
+                double dz = distance * lookAt.z;
+                Point newPosition = new Point(position.x - dx, position.y, position.z - dz);
+                if (!CheckCollision(newPosition))
+                {
+                    position = newPosition;
+                    camera.position = newPosition;
+                }
             }
 
-
-            public void Rotate(Vector direction)
+            public void StrafeLeft(double distance)
             {
-                
+                double dx = distance * lookAt.z;
+                double dz = -distance * lookAt.x;
+                Point newPosition = new Point(position.x + dx, position.y, position.z + dz);
+                if (!CheckCollision(newPosition))
+                {
+                    position = newPosition;
+                    camera.position = newPosition;
+                }
             }
 
-        }
+            public void StrafeRight(double distance)
+            {
+                StrafeLeft(-distance);
+            }
 
-        public class Player 
-        {
-            public Vector speed; //Скорость перемещения
+            public void Rotate(Angle angle)
+            {
+                Vector newRotation = new Vector(camera.rotation.x + angle.xz, camera.rotation.y + angle.yz, camera.rotation.z + angle.xy);
+                camera.rotation = newRotation;
+                lookAt = new Vector(Math.Sin(newRotation.x * Math.PI / 180), Math.Tan(newRotation.y * Math.PI / 180), Math.Cos(newRotation.x * Math.PI / 180) * Math.Cos(newRotation.y * Math.PI / 180));
+            }
 
-            public Player(Point position, Vector rotation, Point lookAt, Vector lookDir, double fov, double drawDistance) 
+            private bool CheckCollision(Point newPosition)
             { 
-               
-            }
-
-            public void Step(Vector direction) //Перемещение в указанном направлении
-            {
-                
+                foreach (Object obj in map.arrObj) 
+                {
+                    if (obj.Contains(newPosition))
+                    { 
+                        return true; 
+                    }
+                }
+                return false;
             }
         }
+        public class FreeCamera : Spectator 
+        {
+            public FreeCamera(Point position, Vector rotation, double fov, double drawDistance) : base(position, rotation, fov, drawDistance) { }
+
+        }
+        public class Spectator
+        {
+            public Camera camera;
+            public Point position;
+            public Vector lookAt;
+            //public Spectator( Camera camera, Point position, Vector lookAt)
+            //{
+            //    this.camera = camera;
+            //    this.position = position;
+            //    this.lookAt = lookAt;
+            //}
+            public Spectator(Point position, Vector rotation, double fov, double drawDistance)
+            {
+                this.camera = new Camera(position, rotation, null, null, fov, drawDistance);
+            }
+
+            public Spectator(Point position, double fov, double drawDistance)
+                : this(position, new Vector(0, 0, 0), fov, drawDistance) { }
+
+            public void MoveBack(double distance) 
+            {
+                double dx = distance * camera.lookDir.x;
+                double dz = distance * camera.lookDir.z;
+                camera.position = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+            }
+            public void MaveForward(double distance)
+            {
+                //position = position + camera.position * distance;
+                //camera.position = position;
+                double dx = distance * camera.lookDir.x; 
+                double dz = distance * camera.lookDir.z;
+                camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+            }
+            public void StrafeLeft(double distance)
+            {
+                double dx = distance * camera.lookDir.z;
+                double dz = -distance * camera.lookDir.x;
+                camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+            }
+            public void StrafeRight(double distance)
+            {
+                StrafeLeft(-distance);
+            }
+            public void Rotate(Angle angle)
+            {
+                Vector newRotation = new Vector(camera.rotation.x + angle.xz, camera.rotation.y + angle.yz, camera.rotation.z + angle.xy);
+                camera.rotation = newRotation;
+                camera.lookDir = new Vector(Math.Sin(newRotation.x * Math.PI / 180), Math.Tan(newRotation.y * Math.PI / 180), Math.Cos(newRotation.x * Math.PI / 180) * Math.Cos(newRotation.y * Math.PI / 180));
+            }
+
+
+        }
+       
 
         
 
