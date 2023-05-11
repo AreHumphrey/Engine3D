@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "TestForMyClass/1.0.0": {
+        "dependencies": {
+          "Elementary_classes_engine": "1.0.0"
+        },
+        "runtime": {
+          "TestForMyClass.dll": {}
+        }
+      },
+      "Elementary_classes_engine/1.0.0": {
+        "runtime": {
+          "Elementary_classes_engine.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TestForMyClass/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Elementary_classes_engine/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
