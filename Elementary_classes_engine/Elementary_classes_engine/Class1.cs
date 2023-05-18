@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.Intrinsics;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 
@@ -22,12 +23,10 @@ namespace Elementary_classes_engine
                 this.z = z;
             }
             public Point Subtract(Vector other) {
-return new Point(
-this.x - other.x,
-this.y - other.y,
-this.z - other.z
-);
-}
+                return new Point(
+                    this.x - other.x,
+                    this.y - other.y,
+                    this.z - other.z );}
             //Перегрузка операторов ( + - * / ) + расстояние
             public static double distance(Point a, Point b)
             {
@@ -83,7 +82,18 @@ this.z - other.z
             {
                 return Math.Sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
             }
+            public Vector Normalized(Vector vector)
+            {
+                return vector / LenVector(vector);
+            }
 
+            public  Vector Cross(Vector a, Vector b)
+            {
+                double x = a.y * b.z - a.z * b.y;
+                double y = a.z * b.x - a.x * b.z;
+                double z = a.x * b.y - a.y * b.x;
+                return new Vector(x, y, z);
+            }
 
             //Перегрузка операторов ( + - * / ) + расстояние
             public static Vector operator +(Vector a, Vector b)
@@ -141,6 +151,7 @@ this.z - other.z
                 double vectorsLen = Vector.LenVector(vect);
                 return vect / vectorsLen;
             }
+
         }
         public class Camera
         {
@@ -148,22 +159,23 @@ this.z - other.z
             public double height = 50;
             public double fov;
             public double vFov; //Вертикальный угол отрисовки
-            public Point lookAt;
+            public Vector lookAt;
             public Vector lookDir;
             public Point position;
             public Vector rotation;
             public double drawDistance;
-            public Camera(Point position, Vector rotation, Point lookAt, Vector lookDir, double fov, double drawDistance)
+            public Camera(Point position, Vector rotation, Vector lookAt, Vector lookDir, double fov, double drawDistance)
             {
                 this.rotation = rotation;
                 this.lookAt = lookAt;
                 this.lookDir = lookDir;
-                this.fov = fov;
+                this.fov = (fov / 180 * Math.PI) / 2;
                 this.position = position;
                
                 this.drawDistance = drawDistance;
 
             }
+            
 
             public double DistanceTo(Point point)
             {
@@ -176,7 +188,7 @@ this.z - other.z
             public List<Object> nearestObject(Object[] objects)
             {
                 List<Object> nearestObjects = new List<Object>();
-                double closestDistance = double.PositiveInfinity;
+                Dictionary<double, Object> distanceToObject = new Dictionary<double, Object>();
                 foreach (Object obj in objects)
                 {
                     Ray ray = new Ray(position, lookDir);
@@ -184,16 +196,61 @@ this.z - other.z
                     if (intersection != null)
                     {
                         double distance = DistanceTo(intersection);
+                        if (distance < drawDistance)
+                        {
+                            distanceToObject[distance] = obj;
+                        }
+                    }
+                }
+                foreach (var pair in distanceToObject.OrderBy(p => p.Key))
+                {
+                    nearestObjects.Add(pair.Value);
+                }
+                return nearestObjects;
+            }
+            public Object NearestObject(Object[] objects, Vector rayDirection)
+            {
+                Object nearestObject = null; double closestDistance = double.PositiveInfinity;
 
+                foreach (Object obj in objects)
+                {
+                    Ray ray = new Ray(position, rayDirection);
+                    Point intersection = obj.Intersect(ray);
+                    if (intersection != null)
+                    {
+                        double distance = DistanceTo(intersection);
                         if (distance < closestDistance && distance < drawDistance)
                         {
-                            nearestObjects.Add(obj);
-                            closestDistance = distance;
+                            // Проверяем, что найденный объект ближе всех других найденных объектов
+                            bool isCloser = true;
+                            foreach (Object other in objects)
+                            {
+                                if (other != obj)
+                                {
+                                    Ray otherRay = new Ray(position, rayDirection);
+                                    Point otherIntersection = other.Intersect(otherRay);
+                                    if (otherIntersection != null)
+                                    {
+                                        double otherDistance = DistanceTo(otherIntersection);
+                                        if (otherDistance < distance)
+                                        {
+                                            isCloser = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (isCloser)
+                            {
+                                nearestObject = obj;
+                                closestDistance = distance;
+                            }
                         }
                     }
                 }
 
-                return nearestObjects;
+                return nearestObject;
             }
 
             public Vector AngleToDirectionVector(Vector baseDirection, double angle)
@@ -247,7 +304,8 @@ this.z - other.z
             public Point position;
             public Vector Rotation;
 
-            public abstract bool Contains(Point Pt);
+
+            public abstract bool Contains(Point p);
 
             public  virtual Point Intersect(Ray ray)
             {
@@ -271,7 +329,7 @@ this.z - other.z
 
                 return nearestPoint;
             }
-
+           
             public double DistanceTo(Point point)
             {
                 double dx = point.x - position.x;
@@ -279,7 +337,13 @@ this.z - other.z
                 double dz = point.z - position.z;
                 return Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
+            public Point GetCollisionPoint(Point playerPosition, Vector playerDirection)
+            {
+                Ray playerRay = new Ray(playerPosition, playerDirection);
+                Point intersectionPoint = Intersect(playerRay);
 
+                return intersectionPoint;
+            }
 
 
         }
@@ -524,10 +588,8 @@ this.z - other.z
                 this.camera = camera;
                 this.vSpace = vectorSpace;
             }
-            public void draw()
-            {
-
-            }  
+            public void Draw() { }
+          
         }
 
         public class Consoles : Canvas
@@ -540,7 +602,6 @@ this.z - other.z
             public Consoles(Map map, Camera camera, VectorSpace vSpace) : base(map, camera, vSpace) { }
 
             private string dropline = "@#*+=-^:. ";
-  
             public void Draw()
             {
                 int screenWidth = 100;
@@ -548,51 +609,42 @@ this.z - other.z
 
                 for (int y = 0; y < screenHeight; y++)
                 {
-                    for (int x = 0; x < screenWidth ; x++)
+                    for (int x = 0; x < screenWidth; x++)
                     {
-
                         Vector dir = vSpace.dir1 * ((double)x / screenWidth - 0.5) + vSpace.dir2 * ((double)y / screenHeight - 0.5) + vSpace.dir3;
+                        Object nearestObject = camera.NearestObject(map.arrObj, dir);
 
-                        List<Object> nearestObjects = camera.nearestObject(map.arrObj);
-                        foreach (var obj in nearestObjects)
+                        if (nearestObject != null)
                         {
-                            if (obj != null)
+                            Ray ray = new Ray(camera.position, dir);
+                            Point intersection = nearestObject.Intersect(ray);
+                            if (intersection != null)
                             {
-                                Ray ray = new Ray(camera.position, dir);
-                                Point intersection = obj.Intersect(ray);
+                                double distance = camera.DistanceTo(intersection);
+                                double gradientIndex = (distance / 100.0) * dropline.Length;
+                                for (int i = 1; i < nearestObject.DistanceTo(camera.position); i++)
+                                {
+                                    gradientIndex += 0.05; 
+                                }
 
-                                if (intersection != null)
-                                {
-                                    double distance = camera.DistanceTo(intersection);
-                                    double gradientIndex = (distance / 100.0) * dropline.Length;
-                                    for (int i = 1; i < obj.DistanceTo(camera.position); i++)
-                                    {
-                                        gradientIndex += 0.05; // изменение на 0.5% за каждый пиксель
-                                    }
-                                    gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
-                                    Console.Write(dropline[(int)Math.Round(gradientIndex)]);
-                                }
-                                else
-                                {
-                                    Console.Write(" ");
-                                }
+                                gradientIndex = Math.Min(gradientIndex, dropline.Length - 1);
+
+                                Console.Write(dropline[(int)Math.Round(gradientIndex)]);
                             }
                             else
                             {
                                 Console.Write(" ");
                             }
                         }
-
-
+                        else
+                        {
+                            Console.Write(" ");
+                        }
                     }
 
                     Console.WriteLine();
                 }
-
-
-
             }
-
         }
         public class Angle : Point //Угол поворота 
         {
@@ -661,145 +713,225 @@ this.z - other.z
 
         }
 
-        
-
         public class Player
         {
             public Camera camera;
-            public Point position;
-            public Vector lookAt;
-            public double collisionRadius;
             public Map map;
 
-            public Player(Point position, double fov, double drawDistance, double collisionRadius, Map map)
+            public Player( Camera camera, double drawDistance, double collisionRadius, Map map)
             {
-                this.camera = new Camera(position, new Vector(0, 0, 0), null, null, fov, drawDistance);
-                this.position = position;
-                this.lookAt = new Vector(0, 0, 1); // default look direction is towards +Z axis
-                this.collisionRadius = collisionRadius;
+                this.camera = camera;
                 this.map = map;
             }
 
-            public void MoveForward(double distance)
+            public Camera MoveForward(double distance)
             {
-                double dx = distance * lookAt.x;
-                double dz = distance * lookAt.z;
-                Point newPosition = new Point(position.x + dx, position.y, position.z + dz);
-                if (!CheckCollision(newPosition))
+                double dx = distance * camera.lookAt.x;
+                double dz = distance * camera.lookAt.z;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+                if(collisionPt != newPosition)
+                { 
+                    camera.position = collisionPt;
+                }
+                else
                 {
-                    position = newPosition;
                     camera.position = newPosition;
                 }
+                return camera;
             }
 
-            public void MoveBack(double distance)
+            public Camera MoveBack(double distance)
             {
-                double dx = distance * lookAt.x;
-                double dz = distance * lookAt.z;
-                Point newPosition = new Point(position.x - dx, position.y, position.z - dz);
-                if (!CheckCollision(newPosition))
+                double dx = distance * camera.lookAt.x;
+                double dz = distance * camera.lookAt.z;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+                if (collisionPt != newPosition)
                 {
-                    position = newPosition;
+                    camera.position = collisionPt;
+                }
+                else
+                {
                     camera.position = newPosition;
                 }
+                return camera;
+
             }
 
-            public void StrafeLeft(double distance)
+            public Camera StrafeLeft(double distance)
             {
-                double dx = distance * lookAt.z;
-                double dz = -distance * lookAt.x;
-                Point newPosition = new Point(position.x + dx, position.y, position.z + dz);
-                if (!CheckCollision(newPosition))
+                double dx = distance * camera.lookAt.z;
+                double dz = -distance * camera.lookAt.x;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+                if (collisionPt != newPosition)
                 {
-                    position = newPosition;
+                    camera.position = collisionPt;
+                }
+                else
+                {
                     camera.position = newPosition;
                 }
+                return camera;
             }
 
-            public void StrafeRight(double distance)
+            public Camera StrafeRight(double distance)
             {
-                StrafeLeft(-distance);
+                double dx = -distance * camera.lookAt.z;
+                double dz = distance * camera.lookAt.x;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+                if ((collisionPt.x < newPosition.x && collisionPt.y < newPosition.y && collisionPt.z < newPosition.z))
+                {
+                    camera.position = collisionPt;
+                }
+                else
+                {
+                    camera.position = newPosition;
+                }
+                return camera;
             }
 
-            public void Rotate(Angle angle)
+            public Camera Rotate(double degX, double degY, double degZ)
             {
-                Vector newRotation = new Vector(camera.rotation.x + angle.xz, camera.rotation.y + angle.yz, camera.rotation.z + angle.xy);
-                camera.rotation = newRotation;
-                lookAt = new Vector(Math.Sin(newRotation.x * Math.PI / 180), Math.Tan(newRotation.y * Math.PI / 180), Math.Cos(newRotation.x * Math.PI / 180) * Math.Cos(newRotation.y * Math.PI / 180));
+                degX = degX % 360; degY = degY % 360; degZ = degZ % 360;
+                camera.position = new Point(camera.position.x + degX, camera.position.y + degY, camera.position.z + degZ);
+                double radX = camera.position.x * Math.PI / 180;
+                double radY = camera.position.y * Math.PI / 180;
+                double radZ = camera.position.z * Math.PI / 180;
+                camera.lookDir = new Vector(Math.Sin(radY) * Math.Cos(radX), Math.Sin(radX), Math.Cos(radY) * Math.Cos(radX));
+                camera.position = new Point(camera.position.x, camera.position.y, camera.position.z);
+                camera.lookAt.x = camera.position.x + camera.lookDir.x;
+                camera.lookAt.y = camera.position.y + camera.lookDir.y;
+                camera.lookAt.z = camera.position.z + camera.lookDir.z;
+                return camera;
             }
 
-            private bool CheckCollision(Point newPosition)
-            { 
-                foreach (Object obj in map.arrObj) 
+
+
+
+            public Point CheckCollision(Point newPosition, Vector playerDirection)
+            {
+
+                foreach (Object obj in map.arrObj)
                 {
                     if (obj.Contains(newPosition))
-                    { 
-                        return true; 
+                    {
+                        Point collisionPoint = obj.GetCollisionPoint(newPosition, playerDirection);
+                        return collisionPoint;
                     }
                 }
-                return false;
+
+                return newPosition;
             }
-        }
-        public class FreeCamera : Spectator 
-        {
-            public FreeCamera(Point position, Vector rotation, double fov, double drawDistance) : base(position, rotation, fov, drawDistance) { }
+
 
         }
+
         public class Spectator
         {
             public Camera camera;
             public Point position;
             public Vector lookAt;
-            //public Spectator( Camera camera, Point position, Vector lookAt)
-            //{
-            //    this.camera = camera;
-            //    this.position = position;
-            //    this.lookAt = lookAt;
-            //}
-            public Spectator(Point position, Vector rotation, double fov, double drawDistance)
+            public double dx;
+
+            public Spectator(Camera camera, double drawDistance)
             {
-                this.camera = new Camera(position, rotation, null, null, fov, drawDistance);
+                this.camera = camera;
             }
-
-            public Spectator(Point position, double fov, double drawDistance)
-                : this(position, new Vector(0, 0, 0), fov, drawDistance) { }
-
-            public void MoveBack(double distance) 
+            public Camera MoveBack(double distance) 
             {
                 double dx = distance * camera.lookDir.x;
                 double dz = distance * camera.lookDir.z;
                 camera.position = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+                return camera;
             }
-            public void MaveForward(double distance)
+            public Camera MoveForward(double distance)
             {
-                //position = position + camera.position * distance;
-                //camera.position = position;
                 double dx = distance * camera.lookDir.x; 
                 double dz = distance * camera.lookDir.z;
                 camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                return camera;
             }
-            public void StrafeLeft(double distance)
+            public Camera StrafeLeft(double distance)
             {
                 double dx = distance * camera.lookDir.z;
                 double dz = -distance * camera.lookDir.x;
                 camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                return camera;
             }
-            public void StrafeRight(double distance)
+            public Camera StrafeRight(double distance)
             {
-                StrafeLeft(-distance);
-            }
-            public void Rotate(Angle angle)
-            {
-                Vector newRotation = new Vector(camera.rotation.x + angle.xz, camera.rotation.y + angle.yz, camera.rotation.z + angle.xy);
-                camera.rotation = newRotation;
-                camera.lookDir = new Vector(Math.Sin(newRotation.x * Math.PI / 180), Math.Tan(newRotation.y * Math.PI / 180), Math.Cos(newRotation.x * Math.PI / 180) * Math.Cos(newRotation.y * Math.PI / 180));
+                double dx = -distance * camera.lookDir.z;
+                double dz = distance * camera.lookDir.x;
+                camera.position = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+                return camera;
             }
 
+            public Camera Rotate(double degX, double degY, double degZ)
+            {
+                camera.position = new Point(camera.position.x + degX, camera.position.y + degY, camera.position.z + degZ);
+                double radX = camera.position.x * Math.PI / 180;
+                double radY = camera.position.y * Math.PI / 180;
+                double radZ = camera.position.z * Math.PI / 180;
+                camera.lookDir = new Vector(Math.Sin(radY) * Math.Cos(radX), Math.Sin(radX), Math.Cos(radY) * Math.Cos(radX));
+                Vector up = new Vector(Math.Sin(radY + Math.PI / 2) * Math.Cos(radX), Math.Sin(radX + Math.PI / 2), Math.Cos(radY + Math.PI / 2) * Math.Cos(radX));
+                Vector right = up.Cross(camera.lookDir, up);
+                camera.position = new Point(camera.position.x, camera.position.y, camera.position.z);
+                camera.lookAt.x = camera.position.x + camera.lookDir.x;
+                camera.lookAt.y = camera.position.y + camera.lookDir.y;
+                camera.lookAt.z = camera.position.z + camera.lookDir.z;
+                return camera;
+            }
+           
 
         }
-       
+        public class Event
+        {
+            Dictionary<string, Action<object[]>> events = new Dictionary<string, Action<object[]>>();
 
+            public void add(string name)
+            {
+                events.Add(name, null);
+            }
+
+            public void handle(string name, Action<object[]> callfunction)
+            {
+                events[name] = callfunction;
+            }
+
+            public void trigger(string name, params object[] args)
+            {
+                if (events.ContainsKey(name))
+                {
+                    events[name]?.Invoke(args);
+                }
+            }
+        }
+
+        public class Trigger
+        {
+            Event eventSystem;
+
+            public Trigger(Event eventSystem)
+            {
+                this.eventSystem = eventSystem;
+            }
+
+            public void trigger(string name, params object[] args)
+            {
+                eventSystem.trigger(name, args);
+            }
+        }
         
+
+
+
 
 
 
