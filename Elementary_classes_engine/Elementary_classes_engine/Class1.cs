@@ -22,47 +22,76 @@ namespace Elementary_classes_engine
                 this.y = y;
                 this.z = z;
             }
-            public Point Subtract(Vector other) {
-                return new Point(
-                    this.x - other.x,
-                    this.y - other.y,
-                    this.z - other.z );}
-            //Перегрузка операторов ( + - * / ) + расстояние
-            public static double distance(Point a, Point b)
+
+            public double IntersectionTo(Point point)
+            {
+                return Math.Sqrt((x - point.x) * (x - point.x) + (y - point.y) * (y - point.y) + (z - point.z) * (z - point.z));
+            }
+
+            public static double Distance(Point a, Point b)
             {
                 return Math.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
             }
+
+            public Point Subtract(Vector other) {
+                return new Point(this.x - other.x, this.y - other.y, this.z - other.z );
+            }
+
+            public double GetCoordinate(int index)
+            {
+                if (index == 0)
+                {
+                    return x;
+                }
+                if (index == 1)
+                {
+                    return y;
+                }
+                if (index == 2) 
+                { 
+                    return z; 
+                }
+                throw new IndexOutOfRangeException("Point index out of range");
+
+            }
+
             public static Point operator +(Point a, Point b)
             {
                 return new Point(a.x + b.x, a.y + b.y, a.z + b.z);
             }
+
             public static Point operator -(Point a, Point b)
             {
                 return new Point(a.x - b.x, a.y - b.y, a.z - b.z);
             }
+
             public static Point operator *(Point a, Point b)
             {
                 return new Point(a.x * b.x, a.y * b.y, a.z * b.z);
             }
+
             public static Point operator /(Point a, Point b)
             {
                 return new Point(a.x / b.x, a.y / b.y, a.z / b.z);
             }
-           
-
+          
             public static Point operator *(Point a, double element)
             {
                 return new Point(a.x * element, a.y * element, a.z * element);
             }
+
             public static Point operator *(double element, Point b)
             {
                 return new Point(b.x * element, b.y * element, b.z * element);
             }
         }
+
+
+
         public class Vector
         {
             public double x = 0, y = 0, z = 0;
-            public Point pt;
+            public Point pt, pt1, pt2;
 
             public Vector(Point pt)
             {
@@ -71,6 +100,16 @@ namespace Elementary_classes_engine
                 this.z = pt.z;
 
             }
+
+            public Vector(Point pt1, Point pt2)
+            {
+                this.pt1 = pt1;
+                this.pt2 = pt2;
+                x = pt2.x - pt1.x;
+                y = pt2.y - pt1.y;
+                z = pt2.z - pt1.z;
+            }
+
             public Vector(double x, double y, double z)
             {
                 this.x = x;
@@ -78,13 +117,14 @@ namespace Elementary_classes_engine
                 this.z = z;
             }
 
-            public static double LenVector(Vector v1)
+            public static double Lenght(Vector v1)
             {
                 return Math.Sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
             }
+
             public Vector Normalized(Vector vector)
             {
-                return vector / LenVector(vector);
+                return vector / Lenght(vector);
             }
 
             public  Vector Cross(Vector a, Vector b)
@@ -95,42 +135,58 @@ namespace Elementary_classes_engine
                 return new Vector(x, y, z);
             }
 
-            //Перегрузка операторов ( + - * / ) + расстояние
+            public double GetCoordinate(int index)
+            {
+                if (index == 0) return x;
+                if (index == 1) return y;
+                if (index == 2) return z;
+                throw new IndexOutOfRangeException("Point index out of range");
+            }
+
             public static Vector operator +(Vector a, Vector b)
             {
                 return new Vector(new Point(a.x + b.x, a.y + b.y, a.z + b.z));
             }
+
             public static Vector operator -(Vector a, Vector b)
             {
                 return new Vector(new Point(a.x - b.x, a.y - b.y, a.z - b.z));
             }
+
             public static Vector operator *(Vector a, Vector b)
             {
                 return new Vector(new Point(a.x * b.x, a.y * b.y, a.z * b.z));
             }
+
             public static Vector operator ^(Vector a, Vector b)
             {
                 return new Vector(new Point(a.y * b.z - a.z * b.z, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x));
             }
+
             public static Vector operator /(Vector a, Vector b)
             {
                 return new Vector(new Point(a.x / b.x, a.y / b.y, a.z / b.z));
             }
+
             public static Vector operator *(double element, Vector b)
             {
                 return new Vector(new Point(element * b.x, element * b.y, element * b.z));
             }
+
             public static Vector operator *(Vector a, double element)
             {
                 return new Vector(new Point(element * a.x, element * a.y, element * a.z));
             }
+
             public static Vector operator /(Vector a, double element)
             {
                 return new Vector(new Point(a.x / element, a.y / element, a.z / element));
             }
 
-
         }
+
+
+
         public class VectorSpace
         {
             public Point Initpt;
@@ -148,22 +204,26 @@ namespace Elementary_classes_engine
 
             public static Vector VectorBasis(Vector vect)
             {
-                double vectorsLen = Vector.LenVector(vect);
+                double vectorsLen = Vector.Lenght(vect);
                 return vect / vectorsLen;
             }
 
         }
+
+
+
         public class Camera
         {
             public double width = 70;
             public double height = 50;
             public double fov;
-            public double vFov; //Вертикальный угол отрисовки
+            public double vFov; 
             public Vector lookAt;
             public Vector lookDir;
             public Point position;
             public Vector rotation;
             public double drawDistance;
+
             public Camera(Point position, Vector rotation, Vector lookAt, Vector lookDir, double fov, double drawDistance)
             {
                 this.rotation = rotation;
@@ -171,12 +231,10 @@ namespace Elementary_classes_engine
                 this.lookDir = lookDir;
                 this.fov = (fov / 180 * Math.PI) / 2;
                 this.position = position;
-               
                 this.drawDistance = drawDistance;
 
             }
             
-
             public double DistanceTo(Point point)
             {
                 double dx = point.x - position.x;
@@ -185,29 +243,6 @@ namespace Elementary_classes_engine
                 return Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
 
-            public List<Object> nearestObject(Object[] objects)
-            {
-                List<Object> nearestObjects = new List<Object>();
-                Dictionary<double, Object> distanceToObject = new Dictionary<double, Object>();
-                foreach (Object obj in objects)
-                {
-                    Ray ray = new Ray(position, lookDir);
-                    Point intersection = obj.Intersect(ray);
-                    if (intersection != null)
-                    {
-                        double distance = DistanceTo(intersection);
-                        if (distance < drawDistance)
-                        {
-                            distanceToObject[distance] = obj;
-                        }
-                    }
-                }
-                foreach (var pair in distanceToObject.OrderBy(p => p.Key))
-                {
-                    nearestObjects.Add(pair.Value);
-                }
-                return nearestObjects;
-            }
             public Object NearestObject(Object[] objects, Vector rayDirection)
             {
                 Object nearestObject = null; double closestDistance = double.PositiveInfinity;
@@ -221,7 +256,6 @@ namespace Elementary_classes_engine
                         double distance = DistanceTo(intersection);
                         if (distance < closestDistance && distance < drawDistance)
                         {
-                            // Проверяем, что найденный объект ближе всех других найденных объектов
                             bool isCloser = true;
                             foreach (Object other in objects)
                             {
@@ -256,17 +290,13 @@ namespace Elementary_classes_engine
             public Vector AngleToDirectionVector(Vector baseDirection, double angle)
             {
                 double rad = angle * (Math.PI / 180), cos = Math.Cos(rad), sin = Math.Sin(rad);
-
                 Vector rot = new Vector(baseDirection.x * cos - baseDirection.z * sin, baseDirection.y, baseDirection.x * sin + baseDirection.z * cos);
                 return rot;
             }
 
-           
-            
-            public List<Ray> sendRays(Map map)
+            public List<Ray> SendRays(Map map)
             {
                 List<Ray> rays = new List<Ray>();
-
                 double rayAngle = fov / width; 
                 double vRayAngle = vFov / height; 
 
@@ -299,11 +329,12 @@ namespace Elementary_classes_engine
 
         }
        
+
+
         public abstract class Object
         {
             public Point position;
-            public Vector Rotation;
-
+            public Vector rotation;
 
             public abstract bool Contains(Point p);
 
@@ -337,6 +368,7 @@ namespace Elementary_classes_engine
                 double dz = point.z - position.z;
                 return Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
+
             public Point GetCollisionPoint(Point playerPosition, Vector playerDirection)
             {
                 Ray playerRay = new Ray(playerPosition, playerDirection);
@@ -345,30 +377,31 @@ namespace Elementary_classes_engine
                 return intersectionPoint;
             }
 
-
         }
 
-        public class Plane : Object // Плоскость наследуется от объекта 
+
+
+        public class Plane : Object
         {
             public Parameters parameters;
 
             public Plane(Point position, Vector rotation)
             {
                 this.position = position;
-                this.Rotation = rotation;
+                this.rotation = rotation;
                 parameters = new Parameters();
             }
 
             public override bool Contains(Point point)
             {
                 double result = parameters.aCoefficient * point.x + parameters.bCoefficient * point.y + parameters.cCoefficient * point.z;
-
                 return result == 0;
             }
 
             public override Point Intersect(Ray ray)
             {
                 double denominator = parameters.aCoefficient * ray.direction.x + parameters.bCoefficient * ray.direction.y + parameters.cCoefficient * ray.direction.z;
+
                 if (denominator == 0)
                 {
                     if (Contains(ray.position))
@@ -383,13 +416,53 @@ namespace Elementary_classes_engine
                 else
                 {
                     double numerator = parameters.aCoefficient * (ray.position.x - position.x) + parameters.bCoefficient * (ray.position.y - position.y) + parameters.cCoefficient * (ray.position.z - position.z);
-
                     double distance = numerator / denominator;
-
                     return new Point(ray.position.x + ray.direction.x * distance, ray.position.y + ray.direction.y * distance, ray.position.z + ray.direction.z * distance);
                 }
             }
         }
+
+
+
+        public class BoundedPlane : Plane
+        {
+            private double dx, dy, dz; 
+
+            public BoundedPlane(Point position, Vector rotation, double dx, double dy, double dz) : base(position, rotation)
+            {
+                this.dx = dx;
+                this.dy = dy;
+                this.dz = dz;
+            }
+
+            public override bool Contains(Point point)
+            {
+                bool contains = base.Contains(point);
+
+                if (contains)
+                {
+                    double xDiff = point.x - position.x, yDiff = point.y - position.y, zDiff = point.z - position.z;
+                    contains = (Math.Abs(xDiff) <= dx / 2) && (Math.Abs(yDiff) <= dy / 2) && (Math.Abs(zDiff) <= dz / 2);
+                }
+
+                return contains;
+            }
+
+            public override Point Intersect(Ray ray)
+            {
+                return base.Intersect(ray); 
+            }
+
+            public override Point NearestPoint(Point[] points)
+            {
+                Point[] boundedPoints = points.Where(p => Contains(p)).ToArray(); 
+
+                return base.NearestPoint(boundedPoints); 
+            }
+        }
+
+
+
         public class Parameters
         {
             public double aCoefficient;
@@ -408,26 +481,30 @@ namespace Elementary_classes_engine
                 bCoefficient = newBCoefficient;
             }
 
-            public void Move(double x, double y, double z) // Преобразовать коэффициенты уравнения при помощи перемещения
+            public void Move(double x, double y, double z) 
             {
                 aCoefficient += x;
                 bCoefficient += y;
                 cCoefficient += z;
             }
 
-            public void Scale(double xFactor, double yFactor, double zFactor)  // Преобразовать коэффициенты уравнения при помощи масштабирования
+            public void Scale(double xFactor, double yFactor, double zFactor)  
             {
                 aCoefficient *= xFactor;
                 bCoefficient *= yFactor;
                 cCoefficient *= zFactor;
             }
         }
+
+
+
         public class ParametersPlane : Parameters
         {
             public double a;
             public double b;
-            public double c;
-            public double d;   
+            public double c = 1;
+            public double d;  
+            
             public ParametersPlane()
             {
                 a = 0;
@@ -437,25 +514,104 @@ namespace Elementary_classes_engine
             }
             
         }
-        public class BoundedPlane : Plane //  Главная плоскость
+
+
+
+        public class Parallelepiped : Object
         {
-            private double dx;
-            private double dy;
-            private double dz;
+            private ParametersParallelepiped parameters;
 
-            public BoundedPlane(Point position, Vector rotation, double dx, double dy, double dz) : base(position, rotation)
+            public Parallelepiped(Point center, ParametersParallelepiped parameters)
             {
-                this.dx = dx;
-                this.dy = dy;
-                this.dz = dz;
-
-            }
-            public void InBoundaries(Point Pt)  // Проверка координат точки на соответствие границам плоскости
-            {
-           
+                position = center;
+                this.parameters = parameters;
             }
 
+            public override bool Contains(Point point)
+            {
+                double distanceX = Math.Abs(point.x - position.x);
+                double distanceY = Math.Abs(point.y - position.y);
+                double distanceZ = Math.Abs(point.z - position.z);
+
+                if (distanceX > parameters.width / 2 || distanceY > parameters.height / 2 || distanceZ > parameters.depth / 2)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public override Point Intersect(Ray ray)
+            {
+                double tmin = double.MinValue, tmax = double.MaxValue;
+                Point p = position;
+                double[] bounds = { p.x - parameters.width / 2, p.x + parameters.width / 2, p.y - parameters.height / 2, p.y + parameters.height / 2, p.z - parameters.depth / 2, p.z + parameters.depth / 2 }; 
+
+                for (int i = 0; i < bounds.Length; i += 2)
+                {
+                    double t0 = (bounds[i] - ray.position.GetCoordinate(i / 2)) / ray.direction.GetCoordinate(i / 2); 
+                    double t1 = (bounds[i + 1] - ray.position.GetCoordinate(i / 2)) / ray.direction.GetCoordinate(i / 2);
+
+                    if (t0 > t1)
+                    {
+                        double temp = t0;
+                        t0 = t1;
+                        t1 = temp;
+                    }
+
+                    if (t0 > tmin)
+                    {
+                        tmin = t0;
+                    }
+
+                    if (t1 < tmax)
+                    {
+                        tmax = t1;
+                    }
+
+                    if (tmin > tmax)
+                    {
+                        return null;
+                    }
+
+                    if (tmax < 0)
+                    {
+                        return null;
+                    }
+                }
+
+                double t = tmin > 0 ? tmin : tmax;
+
+                Point point = new Point(ray.position.x + t * ray.direction.x, ray.position.y + t * ray.direction.y, ray.position.z + t * ray.direction.z);
+
+                if (Contains(point))
+                {
+                    return point;
+                }
+
+                return null;
+            }
         }
+
+
+
+        public class ParametersParallelepiped : Parameters
+        {
+            public double width;
+            public double height;
+            public double depth;
+
+            public ParametersParallelepiped(double x, double y, double z, double width, double height, double depth)
+            {
+                this.width = width;
+                this.height = height;
+                this.depth = depth;
+                this.aCoefficient = x;
+                this.bCoefficient = y;
+                this.cCoefficient = z;
+            }
+        }
+
 
 
         public class Sphere : Object
@@ -480,7 +636,6 @@ namespace Elementary_classes_engine
                 double a = ray.direction.x * ray.direction.x + ray.direction.y * ray.direction.y + ray.direction.z * ray.direction.z,
                 b = 2 * (ray.direction.x * (ray.position.x - position.x) + ray.direction.y * (ray.position.y - position.y) +  ray.direction.z * (ray.position.z - position.z)),
                 c = (ray.position.x - position.x) * (ray.position.x - position.x) + (ray.position.y - position.y) * (ray.position.y - position.y) + (ray.position.z - position.z) * (ray.position.z - position.z) - parameters.radius * parameters.radius;
-
                 double discriminant = b * b - 4 * a * c;
 
                 if (discriminant < 0)
@@ -501,9 +656,10 @@ namespace Elementary_classes_engine
 
             }
 
-
-
         }
+
+
+
         public class ParametersSphere : Parameters
         {
             public double radius;
@@ -517,9 +673,13 @@ namespace Elementary_classes_engine
 
             }
         }
+
+        
+
         public class Map
         {
             public Object[] arrObj;
+
             public void Append(Object obj)
             {
                 if (arrObj == null)
@@ -533,12 +693,16 @@ namespace Elementary_classes_engine
                     {
                         newArrObjects[i] = arrObj[i];
                     }
+
                     newArrObjects[newArrObjects.Length - 1] = obj;
                     arrObj = newArrObjects;
                 }
             }
 
         }
+
+
+
         public class Ray
         {
             public Point position;
@@ -558,7 +722,7 @@ namespace Elementary_classes_engine
 
                 foreach (Object obj in map.arrObj)
                 {
-                    Point point = obj.Intersect(this); // передаем объекту текущий луч
+                    Point point = obj.Intersect(this); 
                     if (point != null)
                     {
                         double distance = obj.DistanceTo(position);
@@ -577,6 +741,8 @@ namespace Elementary_classes_engine
 
         }
         
+
+
         public class Canvas
         {
             public Map map;
@@ -592,20 +758,19 @@ namespace Elementary_classes_engine
           
         }
 
+
+
+
         public class Consoles : Canvas
         {
-            private ConsoleColor[] gradient = new ConsoleColor[]
-            {
-                ConsoleColor.Red, ConsoleColor.Green, ConsoleColor.Blue, ConsoleColor.Yellow, ConsoleColor.DarkYellow, ConsoleColor.DarkCyan
-
-            };
             public Consoles(Map map, Camera camera, VectorSpace vSpace) : base(map, camera, vSpace) { }
 
             private string dropline = "@#*+=-^:. ";
+
             public void Draw()
             {
-                int screenWidth = 100;
-                int screenHeight = 50;
+                int screenWidth = Console.WindowWidth - 45;
+                int screenHeight = Console.WindowHeight;
 
                 for (int y = 0; y < screenHeight; y++)
                 {
@@ -646,47 +811,51 @@ namespace Elementary_classes_engine
                 }
             }
         }
-        public class Angle : Point //Угол поворота 
+
+
+
+        public class Angle : Point 
         {
             public double yz { get; set; } 
             public double xz { get; set; }
             public double xy { get; set; }
+
             public Angle(double x, double y, double z, double yz, double xz, double xy) : base(x, y, z)
             {
                 this.yz = ToRange(yz);
                 this.xz = ToRange(xz);
                 this.xy = ToRange(xy);
             }
+
             public double ToRange(double angle)
             {
                 angle %= 360;
+
                 if (angle < 0)
                 {
                     angle += 360;
                 }
+
                 return angle;
             }
+
             public static Angle operator +(Angle a, Angle b)
             {
-                double newYZ = a.yz + b.yz;
-                double newXZ = a.xz + b.xz;
-                double newXY = a.xy + b.xy;
+                double newYZ = a.yz + b.yz, newXZ = a.xz + b.xz, newXY = a.xy + b.xy;
+
                 return new Angle(0, 0, 0, newYZ, newXZ, newXY);
             }
 
             public static Angle operator -(Angle a)
             {
-                double newYz = -a.yz;
-                double newXz = -a.xz;
-                double newXy = -a.xy;
+                double newYz = -a.yz, newXz = -a.xz, newXy = -a.xy;
+
                 return new Angle(0, 0, 0, newYz, newXz, newXy);
             }
 
             public static Vector operator *(Point a, Angle angle)
             {
-                double yzRad = angle.yz * Math.PI / 180;
-                double xzRad = angle.xz * Math.PI / 180;
-                double xyRad = angle.xy * Math.PI / 180;
+                double yzRad = angle.yz * Math.PI / 180, xzRad = angle.xz * Math.PI / 180,  xyRad = angle.xy * Math.PI / 180;
 
                 double[,] matrix = new double[3, 3];
                 matrix[0, 0] = Math.Cos(xzRad) * Math.Cos(yzRad);
@@ -713,6 +882,8 @@ namespace Elementary_classes_engine
 
         }
 
+
+
         public class Player
         {
             public Camera camera;
@@ -731,6 +902,7 @@ namespace Elementary_classes_engine
                 Vector playerDirection = camera.lookAt;
                 Point newPosition = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
                 Point collisionPt = CheckCollision(newPosition, playerDirection);
+
                 if(collisionPt != newPosition)
                 { 
                     camera.position = collisionPt;
@@ -744,8 +916,7 @@ namespace Elementary_classes_engine
 
             public Camera MoveBack(double distance)
             {
-                double dx = distance * camera.lookAt.x;
-                double dz = distance * camera.lookAt.z;
+                double dx = distance * camera.lookAt.x, dz = distance * camera.lookAt.z;
                 Vector playerDirection = camera.lookAt;
                 Point newPosition = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
                 Point collisionPt = CheckCollision(newPosition, playerDirection);
@@ -761,13 +932,13 @@ namespace Elementary_classes_engine
 
             }
 
-            public Camera StrafeLeft(double distance)
+            public Camera MoveUp(double distance)
             {
-                double dx = distance * camera.lookAt.z;
-                double dz = -distance * camera.lookAt.x;
+                double dx = distance * camera.lookDir.x, dy = distance * camera.lookDir.y, dz = distance * camera.lookDir.z;
                 Vector playerDirection = camera.lookAt;
-                Point newPosition = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                Point newPosition = new Point(camera.position.x, camera.position.y - distance, camera.position.z);
                 Point collisionPt = CheckCollision(newPosition, playerDirection);
+
                 if (collisionPt != newPosition)
                 {
                     camera.position = collisionPt;
@@ -776,13 +947,53 @@ namespace Elementary_classes_engine
                 {
                     camera.position = newPosition;
                 }
+
+                return camera;
+                
+            }
+
+            public Camera MoveDown(double distance)
+            {
+                double dx = distance * camera.lookDir.x, dy = distance * camera.lookDir.y, dz = distance * camera.lookDir.z;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x, camera.position.y +  distance, camera.position.z);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+
+                if (collisionPt != newPosition)
+                {
+                    camera.position = collisionPt;
+                }
+                else
+                {
+                    camera.position = newPosition;
+                }
+
+                return camera;
+
+            }
+
+            public Camera StrafeLeft(double distance)
+            {
+                double dx = -distance * camera.lookAt.z, dz = -distance * camera.lookAt.x;
+                Vector playerDirection = camera.lookAt;
+                Point newPosition = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+                Point collisionPt = CheckCollision(newPosition, playerDirection);
+
+                if (collisionPt != newPosition)
+                {
+                    camera.position = collisionPt;
+                }
+                else
+                {
+                    camera.position = newPosition;
+                }
+
                 return camera;
             }
 
             public Camera StrafeRight(double distance)
             {
-                double dx = -distance * camera.lookAt.z;
-                double dz = distance * camera.lookAt.x;
+                double dx = -distance * camera.lookAt.z, dz = distance * camera.lookAt.x;
                 Vector playerDirection = camera.lookAt;
                 Point newPosition = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
                 Point collisionPt = CheckCollision(newPosition, playerDirection);
@@ -794,30 +1005,27 @@ namespace Elementary_classes_engine
                 {
                     camera.position = newPosition;
                 }
+
                 return camera;
             }
 
             public Camera Rotate(double degX, double degY, double degZ)
             {
                 degX = degX % 360; degY = degY % 360; degZ = degZ % 360;
+
                 camera.position = new Point(camera.position.x + degX, camera.position.y + degY, camera.position.z + degZ);
-                double radX = camera.position.x * Math.PI / 180;
-                double radY = camera.position.y * Math.PI / 180;
-                double radZ = camera.position.z * Math.PI / 180;
+                double radX = camera.position.x * Math.PI / 180, radY = camera.position.y * Math.PI / 180, radZ = camera.position.z * Math.PI / 180;
                 camera.lookDir = new Vector(Math.Sin(radY) * Math.Cos(radX), Math.Sin(radX), Math.Cos(radY) * Math.Cos(radX));
                 camera.position = new Point(camera.position.x, camera.position.y, camera.position.z);
                 camera.lookAt.x = camera.position.x + camera.lookDir.x;
                 camera.lookAt.y = camera.position.y + camera.lookDir.y;
                 camera.lookAt.z = camera.position.z + camera.lookDir.z;
+
                 return camera;
             }
 
-
-
-
             public Point CheckCollision(Point newPosition, Vector playerDirection)
             {
-
                 foreach (Object obj in map.arrObj)
                 {
                     if (obj.Contains(newPosition))
@@ -833,6 +1041,9 @@ namespace Elementary_classes_engine
 
         }
 
+
+
+
         public class Spectator
         {
             public Camera camera;
@@ -844,41 +1055,51 @@ namespace Elementary_classes_engine
             {
                 this.camera = camera;
             }
+
             public Camera MoveBack(double distance) 
             {
-                double dx = distance * camera.lookDir.x;
-                double dz = distance * camera.lookDir.z;
+                double dx = distance * camera.lookDir.x, dz = distance * camera.lookDir.z;
                 camera.position = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+
                 return camera;
             }
+
             public Camera MoveForward(double distance)
             {
-                double dx = distance * camera.lookDir.x; 
-                double dz = distance * camera.lookDir.z;
+                double dx = distance * camera.lookDir.x, dz = distance * camera.lookDir.z;
                 camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+
                 return camera;
             }
+
+            public Camera MoveUp(double distance)
+            {
+                double dx = distance * camera.lookDir.x, dy = distance * camera.lookDir.y, dz = distance * camera.lookDir.z;
+                camera.position = new Point(camera.position.x + dx, camera.position.y + dy, camera.position.z);
+
+                return camera;
+            }
+
             public Camera StrafeLeft(double distance)
             {
-                double dx = distance * camera.lookDir.z;
-                double dz = -distance * camera.lookDir.x;
+                double dx = distance * camera.lookDir.z, dz = -distance * camera.lookDir.x;
                 camera.position = new Point(camera.position.x + dx, camera.position.y, camera.position.z + dz);
+
                 return camera;
             }
+
             public Camera StrafeRight(double distance)
             {
-                double dx = -distance * camera.lookDir.z;
-                double dz = distance * camera.lookDir.x;
+                double dx = -distance * camera.lookDir.z, dz = distance * camera.lookDir.x;
                 camera.position = new Point(camera.position.x - dx, camera.position.y, camera.position.z - dz);
+
                 return camera;
             }
 
             public Camera Rotate(double degX, double degY, double degZ)
             {
                 camera.position = new Point(camera.position.x + degX, camera.position.y + degY, camera.position.z + degZ);
-                double radX = camera.position.x * Math.PI / 180;
-                double radY = camera.position.y * Math.PI / 180;
-                double radZ = camera.position.z * Math.PI / 180;
+                double radX = camera.position.x * Math.PI / 180, radY = camera.position.y * Math.PI / 180, radZ = camera.position.z * Math.PI / 180;
                 camera.lookDir = new Vector(Math.Sin(radY) * Math.Cos(radX), Math.Sin(radX), Math.Cos(radY) * Math.Cos(radX));
                 Vector up = new Vector(Math.Sin(radY + Math.PI / 2) * Math.Cos(radX), Math.Sin(radX + Math.PI / 2), Math.Cos(radY + Math.PI / 2) * Math.Cos(radX));
                 Vector right = up.Cross(camera.lookDir, up);
@@ -886,11 +1107,14 @@ namespace Elementary_classes_engine
                 camera.lookAt.x = camera.position.x + camera.lookDir.x;
                 camera.lookAt.y = camera.position.y + camera.lookDir.y;
                 camera.lookAt.z = camera.position.z + camera.lookDir.z;
+
                 return camera;
             }
            
-
         }
+
+
+
         public class Event
         {
             Dictionary<string, Action<object[]>> events = new Dictionary<string, Action<object[]>>();
@@ -914,6 +1138,8 @@ namespace Elementary_classes_engine
             }
         }
 
+
+
         public class Trigger
         {
             Event eventSystem;
@@ -929,14 +1155,6 @@ namespace Elementary_classes_engine
             }
         }
         
-
-
-
-
-
-
-
-
     }
 
 
