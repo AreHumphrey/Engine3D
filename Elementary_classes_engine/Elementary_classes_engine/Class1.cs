@@ -51,7 +51,7 @@ namespace Elementary_classes_engine
                 { 
                     return z; 
                 }
-                throw new IndexOutOfRangeException("Point index out of range");
+                throw new IndexOutOfRangeException("Индекс точки все диапазона");
 
             }
 
@@ -140,7 +140,7 @@ namespace Elementary_classes_engine
                 if (index == 0) return x;
                 if (index == 1) return y;
                 if (index == 2) return z;
-                throw new IndexOutOfRangeException("Point index out of range");
+                throw new IndexOutOfRangeException("Индекс точки все диапазона");
             }
 
             public static Vector operator +(Vector a, Vector b)
@@ -297,8 +297,7 @@ namespace Elementary_classes_engine
             public List<Ray> SendRays(Map map)
             {
                 List<Ray> rays = new List<Ray>();
-                double rayAngle = fov / width; 
-                double vRayAngle = vFov / height; 
+                double rayAngle = fov / width, vRayAngle = vFov / height; 
 
                 for (int i = 0; i < width; i++)
                 {
@@ -363,9 +362,8 @@ namespace Elementary_classes_engine
            
             public double DistanceTo(Point point)
             {
-                double dx = point.x - position.x;
-                double dy = point.y - position.y;
-                double dz = point.z - position.z;
+                double dx = point.x - position.x, dy = point.y - position.y, dz = point.z - position.z;
+
                 return Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
 
@@ -465,9 +463,7 @@ namespace Elementary_classes_engine
 
         public class Parameters
         {
-            public double aCoefficient;
-            public double bCoefficient;
-            public double cCoefficient;
+            public double aCoefficient, bCoefficient, cCoefficient;
 
             public void Rotate(double angle) 
             {
@@ -1079,6 +1075,14 @@ namespace Elementary_classes_engine
 
                 return camera;
             }
+            public Camera MoveDown(double distance)
+            {
+                double dx = distance * camera.lookDir.x, dy = distance * camera.lookDir.y, dz = distance * camera.lookDir.z;
+                camera.position = new Point(camera.position.x, camera.position.y + distance, camera.position.z);
+                return camera;
+               
+            }
+
 
             public Camera StrafeLeft(double distance)
             {
@@ -1119,17 +1123,17 @@ namespace Elementary_classes_engine
         {
             Dictionary<string, Action<object[]>> events = new Dictionary<string, Action<object[]>>();
 
-            public void add(string name)
+            public void Append(string name)
             {
                 events.Add(name, null);
             }
 
-            public void handle(string name, Action<object[]> callfunction)
+            public void Handle(string name, Action<object[]> callfunction)
             {
                 events[name] = callfunction;
             }
 
-            public void trigger(string name, params object[] args)
+            public void Trigger(string name, params object[] args)
             {
                 if (events.ContainsKey(name))
                 {
@@ -1149,9 +1153,9 @@ namespace Elementary_classes_engine
                 this.eventSystem = eventSystem;
             }
 
-            public void trigger(string name, params object[] args)
+            public void Triggers(string name, params object[] args)
             {
-                eventSystem.trigger(name, args);
+                eventSystem.Trigger(name, args);
             }
         }
         
